@@ -1,0 +1,13 @@
+# Copy to docker-compose.override.yml for local port or volume customizations
+version: "3.9"
+
+services:
+  backend:
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=DEBUG
+
+  frontend:
+    ports:
+      - "5173:5173"
