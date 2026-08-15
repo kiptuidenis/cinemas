@@ -108,4 +108,10 @@ omit = [
 
 [tool.coverage.report]
 show_missing = true
+# Progressive Coverage Gate Ratchet Schedule:
+# - Phase 0: Scaffolding / Monitoring (coverage.xml artifact)
+# - Phase 1: fail_under = 70 (apps.core, apps.cinemas)
+# - Phase 3: fail_under = 85 (apps.bookings.services concurrency)
+# - Phase 5: fail_under = 80 (Monorepo backend)
+# - Phase 10: fail_under = 85 (Production release gate)
 fail_under = 80

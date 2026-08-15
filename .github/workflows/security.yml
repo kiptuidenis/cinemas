@@ -1,0 +1,70 @@
+name: Security & Vulnerability Audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly every Monday at 06:00 UTC
+  workflow_dispatch: # Manual on-demand trigger
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: "pip"
+          cache-dependency-path: backend/requirements/*.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Auditing Tools
+        run: |
+          pip install pip-audit -r backend/requirements/dev.txt
+          cd frontend && npm ci
+
+      - name: Run Backend pip-audit
+        id: pip-audit
+        run: |
+          cd backend
+          pip-audit
+
+      - name: Run Frontend npm audit (Production)
+        id: npm-audit
+        run: |
+          cd frontend
+          npm audit --omit=dev --audit-level=high
+
+      - name: Notify on Security Failure (Create/Update Issue)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "🚨 Security Alert: Known CVE Vulnerability Detected in Dependencies";
+            const body = `### Security Audit Failure Report
+            The weekly automated security audit detected vulnerabilities in project dependencies.
+            - **Workflow Run**: [View Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            - **Timestamp**: ${new Date().toISOString()}
+
+            Please run \`pip-audit\` and \`npm audit --omit=dev\` locally to inspect and upgrade affected packages.`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ["security", "automated-issue"]
+            });

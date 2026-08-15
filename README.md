@@ -1,13 +1,16 @@
 # Cinema Management Platform — Production MVP
 
+[![CI Pipeline](https://github.com/kiptuidenis/cinemas/actions/workflows/ci.yml/badge.svg)](https://github.com/kiptuidenis/cinemas/actions/workflows/ci.yml)
+[![Security Audit](https://github.com/kiptuidenis/cinemas/actions/workflows/security.yml/badge.svg)](https://github.com/kiptuidenis/cinemas/actions/workflows/security.yml)
+
 A multi-tenant, high-assurance cinema management SaaS platform built with Django REST Framework, React (TypeScript), PostgreSQL, Redis, and Celery.
 
 ---
 
 ## Architecture Overview
 
-- **Backend**: Python 3.14+, Django 5.x, Django REST Framework, SimpleJWT (HttpOnly secure cookies), PostgreSQL native Row-Level Security (RLS) multi-tenancy.
-- **Frontend**: React 19 / 18, TypeScript, Vite, TanStack Query, Vanilla CSS design tokens.
+- **Backend**: Python 3.14+, Django 5.x / 6.x, Django REST Framework, SimpleJWT (HttpOnly secure cookies), PostgreSQL native Row-Level Security (RLS) multi-tenancy.
+- **Frontend**: React 18 / 19, TypeScript, Vite, TanStack Query, Vanilla CSS design tokens.
 - **Database**: PostgreSQL 16 (Relational integrity, row-level locking `SELECT FOR UPDATE`, exclusion constraints).
 - **Asynchronous Engine**: Redis 7 + Celery (Seat hold expiration, async notifications).
 - **Payment Abstraction**: Decoupled `PaymentProvider` interface (Safaricom M-Pesa Daraja STK Push + Mock Provider).
