@@ -1,0 +1,55 @@
+# ==============================================================================
+# Cinema Management Platform — Pre-commit Configuration
+# Run all hooks manually: pre-commit run --all-files
+# ==============================================================================
+
+default_language_version:
+  python: python3.14
+  node: "24.0.0"
+
+repos:
+  # General File Sanitizers
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        exclude: "(^frontend/tsconfig.*\\.json$)"
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Deep Secret & Credential Scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # Backend: Python Linting & Formatting (Ruff)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.1
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Frontend: Prettier Formatting & ESLint (Local Hooks via npx)
+  - repo: local
+    hooks:
+      - id: prettier-frontend
+        name: prettier (frontend)
+        entry: npx --prefix frontend prettier --check
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx|css|json)$
+        pass_filenames: true
+
+      - id: eslint-frontend
+        name: eslint (frontend)
+        entry: npx --prefix frontend eslint -c frontend/eslint.config.js
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: true

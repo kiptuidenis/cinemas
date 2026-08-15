@@ -1,9 +1,12 @@
 """
 Core middleware for request correlation ID tracing and tenant context isolation.
 """
-from typing import Callable
+
 import uuid
+from collections.abc import Callable
+
 from django.http import HttpRequest, HttpResponse
+
 from apps.core.context import clear_current_tenant, set_current_tenant_id
 
 

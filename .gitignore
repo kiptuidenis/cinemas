@@ -52,6 +52,8 @@ dist/
 dist-ssr/
 *.local
 .cache/
+*.timestamp-*.mjs
+*.tsbuildinfo
 
 # Playwright / E2E Testing
 test-results/

@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
+# ------------------------------------------------------------------------------
+# Ruff Linter & Formatter Configuration
+# ------------------------------------------------------------------------------
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 line-length = 100
-src = ["backend", "backend/apps"]
+src = ["apps", "config"]
 
 [tool.ruff.lint]
 select = [
@@ -24,14 +27,67 @@ select = [
     "C4",  # flake8-comprehensions
     "PT",  # flake8-pytest-style
     "SIM", # flake8-simplify
+    "S",   # flake8-bandit (security checks)
 ]
 ignore = [
     "E501", # line length handled by formatter
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = [
+    "S101", # allow assert in tests
+    "S603", # allow subprocess call in tests
+    "S607", # allow partial executable path in tests
+]
+
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "config"]
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+# ------------------------------------------------------------------------------
+# Mypy Static Type Checking (Progressive Sane Baseline)
+# ------------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.14"
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main",
+]
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+no_implicit_optional = true
+strict_equality = true
+ignore_missing_imports = true
+
+# Allow gradual typing on dynamic ORM modules
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+[tool.django-stubs]
+django_settings_module = "config.settings.dev"
+
+# High-assurance strict typing for core framework and tenant isolation
+[[tool.mypy.overrides]]
+module = "apps.core.*"
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+# Allow flexible test functions
+[[tool.mypy.overrides]]
+module = ["*.tests.*", "apps.core.tests.*"]
+disallow_untyped_defs = false
+
+# Note: In Phase 3, apps.bookings.services.* will be added here upon creation.
+
+# ------------------------------------------------------------------------------
+# Pytest Configuration
+# ------------------------------------------------------------------------------
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.dev"
 python_files = ["test_*.py", "*_test.py"]

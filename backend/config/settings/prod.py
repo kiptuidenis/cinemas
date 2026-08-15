@@ -1,8 +1,10 @@
 """
 Production Django settings with strict security hardening.
 """
+
 import os
 from urllib.parse import urlparse
+
 from .base import *  # noqa: F403
 
 DEBUG = False

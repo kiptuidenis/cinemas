@@ -1,7 +1,8 @@
 """Root URL Configuration for Cinema Management Platform API."""
+
 from django.contrib import admin
-from django.urls import include, path
 from django.http import JsonResponse
+from django.urls import path
 
 
 def root_health_check(request):

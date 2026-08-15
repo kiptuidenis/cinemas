@@ -1,22 +1,25 @@
 """
 Sanity tests validating Django environment configuration, core middleware, and health endpoints.
 """
+
 import uuid
+
 import pytest
 from django.conf import settings
 from django.test import Client
+
 from apps.core.context import get_current_tenant_id
 
 
 @pytest.mark.django_db
-def test_django_environment_sanity():
+def test_django_environment_sanity() -> None:
     """Verify that Django settings are properly initialized."""
     assert settings.SECRET_KEY is not None
     assert "apps.core.apps.CoreConfig" in settings.INSTALLED_APPS
     assert settings.TIME_ZONE == "Africa/Nairobi"
 
 
-def test_health_check_endpoint():
+def test_health_check_endpoint() -> None:
     """Verify that the baseline health check API responds with 200 OK and valid JSON."""
     client = Client()
     response = client.get("/api/v1/health/")
@@ -26,7 +29,7 @@ def test_health_check_endpoint():
     assert data["service"] == "cinema-management-api"
 
 
-def test_request_id_middleware_generates_header():
+def test_request_id_middleware_generates_header() -> None:
     """Verify that RequestIDMiddleware attaches a valid X-Request-ID header to responses."""
     client = Client()
     response = client.get("/api/v1/health/")
@@ -36,7 +39,7 @@ def test_request_id_middleware_generates_header():
     assert str(parsed_uuid) == response.headers["X-Request-ID"]
 
 
-def test_tenant_context_middleware_header_resolution():
+def test_tenant_context_middleware_header_resolution() -> None:
     """Verify that TenantContextMiddleware parses and isolates tenant context from headers."""
     client = Client()
     test_tenant_id = uuid.uuid4()

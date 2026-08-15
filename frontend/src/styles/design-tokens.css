@@ -11,7 +11,7 @@
   --bg-card: rgba(24, 24, 38, 0.7);
   --bg-card-hover: rgba(32, 32, 50, 0.85);
   --bg-glass: rgba(16, 16, 26, 0.65);
-  
+
   /* Color Palette — Borders */
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.15);
@@ -46,7 +46,8 @@
   --text-gold: #e5a93b;
 
   /* Typography Fonts */
-  --font-family-display: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-display:
+    "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-mono: "Fira Code", "Courier New", monospace;
 

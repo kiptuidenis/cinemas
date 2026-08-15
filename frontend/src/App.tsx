@@ -4,11 +4,7 @@ import { Film, ShieldCheck, Database, Zap, Sparkles, MapPin, CheckCircle2 } from
 export const App: React.FC = () => {
   const [selectedCinema, setSelectedCinema] = useState("Rupa's Cinemas — Eldoret");
 
-  const cinemas = [
-    "Rupa's Cinemas — Eldoret",
-    "Mega Cinema — Kisumu",
-    "Prestige Cinema — Nairobi",
-  ];
+  const cinemas = ["Rupa's Cinemas — Eldoret", "Mega Cinema — Kisumu", "Prestige Cinema — Nairobi"];
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
@@ -39,7 +35,8 @@ export const App: React.FC = () => {
                 width: 40,
                 height: 40,
                 borderRadius: "var(--radius-md)",
-                background: "linear-gradient(135deg, var(--color-crimson) 0%, var(--color-gold) 100%)",
+                background:
+                  "linear-gradient(135deg, var(--color-crimson) 0%, var(--color-gold) 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -113,7 +110,9 @@ export const App: React.FC = () => {
       <main style={{ flex: 1, paddingTop: "var(--space-12)", paddingBottom: "var(--space-16)" }}>
         <div className="container">
           {/* Hero Section */}
-          <section style={{ textAlign: "center", maxWidth: 840, margin: "0 auto var(--space-16) auto" }}>
+          <section
+            style={{ textAlign: "center", maxWidth: 840, margin: "0 auto var(--space-16) auto" }}
+          >
             <div style={{ marginBottom: "var(--space-4)" }}>
               <span className="badge-crimson">Production-Grade SaaS Architecture</span>
             </div>
@@ -122,14 +121,27 @@ export const App: React.FC = () => {
             </h1>
             <p style={{ fontSize: "1.15rem", lineHeight: 1.7, marginBottom: "var(--space-8)" }}>
               Engineering a high-concurrency, multi-tenant platform initially tailored for{" "}
-              <strong style={{ color: "var(--text-primary)" }}>{selectedCinema}</strong> and designed to scale to theaters across East Africa.
+              <strong style={{ color: "var(--text-primary)" }}>{selectedCinema}</strong> and
+              designed to scale to theaters across East Africa.
             </p>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: "var(--space-4)", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "var(--space-4)",
+                flexWrap: "wrap",
+              }}
+            >
               <a href="#architecture" className="btn-primary">
                 <Database size={18} /> Explore Architecture Stack
               </a>
-              <a href="http://localhost:8000/api/v1/health/" target="_blank" rel="noreferrer" className="btn-secondary">
+              <a
+                href="http://localhost:8000/api/v1/health/"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-secondary"
+              >
                 <ShieldCheck size={18} /> API Health Probe
               </a>
             </div>
@@ -162,9 +174,19 @@ export const App: React.FC = () => {
                 </div>
                 <h3 style={{ marginBottom: "var(--space-2)" }}>Django 5 & DRF Core</h3>
                 <p style={{ fontSize: "0.9rem", marginBottom: "var(--space-4)" }}>
-                  Modular architecture with Python 3.14, SimpleJWT rotation via secure HttpOnly cookies, and strict clean architecture.
+                  Modular architecture with Python 3.14, SimpleJWT rotation via secure HttpOnly
+                  cookies, and strict clean architecture.
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--color-emerald)", fontSize: "0.8rem", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    color: "var(--color-emerald)",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                  }}
+                >
                   <CheckCircle2 size={14} /> Modular Settings Configured
                 </div>
               </div>
@@ -187,9 +209,19 @@ export const App: React.FC = () => {
                 </div>
                 <h3 style={{ marginBottom: "var(--space-2)" }}>PostgreSQL 16 & RLS</h3>
                 <p style={{ fontSize: "0.9rem", marginBottom: "var(--space-4)" }}>
-                  Thread-safe ContextVar tenant scoping paired with PostgreSQL native Row-Level Security policies for zero data leaks.
+                  Thread-safe ContextVar tenant scoping paired with PostgreSQL native Row-Level
+                  Security policies for zero data leaks.
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--color-cyan)", fontSize: "0.8rem", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    color: "var(--color-cyan)",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                  }}
+                >
                   <CheckCircle2 size={14} /> Row-Level Isolation Engine
                 </div>
               </div>
@@ -212,9 +244,19 @@ export const App: React.FC = () => {
                 </div>
                 <h3 style={{ marginBottom: "var(--space-2)" }}>Vite + TypeScript</h3>
                 <p style={{ fontSize: "0.9rem", marginBottom: "var(--space-4)" }}>
-                  Custom Vanilla CSS design token system, TanStack Query server-state caching, and strict zero-error TypeScript rules.
+                  Custom Vanilla CSS design token system, TanStack Query server-state caching, and
+                  strict zero-error TypeScript rules.
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--color-gold)", fontSize: "0.8rem", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    color: "var(--color-gold)",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                  }}
+                >
                   <CheckCircle2 size={14} /> Luxury Dark Theme System
                 </div>
               </div>
@@ -237,9 +279,19 @@ export const App: React.FC = () => {
                 </div>
                 <h3 style={{ marginBottom: "var(--space-2)" }}>High-Assurance Safety</h3>
                 <p style={{ fontSize: "0.9rem", marginBottom: "var(--space-4)" }}>
-                  Pessimistic row-locking, UUID public facades, header-based idempotency keys, and automated Celery garbage collection.
+                  Pessimistic row-locking, UUID public facades, header-based idempotency keys, and
+                  automated Celery garbage collection.
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", color: "var(--color-crimson)", fontSize: "0.8rem", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    color: "var(--color-crimson)",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                  }}
+                >
                   <CheckCircle2 size={14} /> Concurrency Safety Blueprints
                 </div>
               </div>
