@@ -1,6 +1,16 @@
+import re
 from typing import Any
 
 from django.apps import AppConfig
+
+# Module-level patch for Django 5.2/6.0+ compatibility with DRF
+try:
+    import django.utils.cache
+
+    if not hasattr(django.utils.cache, "cc_delim_re"):
+        django.utils.cache.cc_delim_re = re.compile("\\s*,\\s*")
+except (ImportError, AttributeError):
+    pass
 
 
 class CoreConfig(AppConfig):
@@ -10,6 +20,18 @@ class CoreConfig(AppConfig):
 
     def ready(self) -> None:
         self._patch_sqlite_for_tenants()
+        self._patch_drf_compat()
+
+    @staticmethod
+    def _patch_drf_compat() -> None:
+        """Shim missing internal Django symbols for Django REST Framework compatibility."""
+        try:
+            import django.utils.cache
+
+            if not hasattr(django.utils.cache, "cc_delim_re"):
+                django.utils.cache.cc_delim_re = re.compile("\\s*,\\s*")
+        except (ImportError, AttributeError):
+            pass
 
     @staticmethod
     def _patch_sqlite_for_tenants() -> None:

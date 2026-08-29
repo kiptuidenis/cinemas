@@ -5,7 +5,7 @@ Handles branded cinema storefront APIs, movie listings, showtimes, seat booking,
 
 from django.db import connection
 from django.http import HttpRequest, JsonResponse
-from django.urls import path
+from django.urls import include, path
 
 
 def tenant_health_check(request: HttpRequest) -> JsonResponse:
@@ -27,4 +27,5 @@ def tenant_health_check(request: HttpRequest) -> JsonResponse:
 
 urlpatterns = [
     path("api/v1/health/", tenant_health_check, name="tenant-api-health"),
+    path("api/v1/", include("apps.cinemas.urls")),
 ]
