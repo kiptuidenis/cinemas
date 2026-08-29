@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 from django.http import HttpRequest, HttpResponse
 
-from apps.core.context import clear_current_tenant, set_current_tenant_id
+from apps.core.context import clear_current_tenant, set_current_tenant, set_current_tenant_id
 
 
 class RequestIDMiddleware:
@@ -32,30 +32,33 @@ class RequestIDMiddleware:
 
 class TenantContextMiddleware:
     """
-    Middleware that resolves the active Cinema Tenant ID from HTTP headers or user affiliation,
-    populates the thread-safe ContextVar, and ensures guaranteed cleanup upon response exit.
+    Middleware that synchronizes the active Cinema Tenant from django-tenants (request.tenant)
+    or HTTP headers (X-Cinema-ID) into thread-safe ContextVars, ensuring guaranteed cleanup.
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        # Check explicit X-Cinema-ID header
-        tenant_header = request.headers.get("X-Cinema-ID")
-        if tenant_header:
-            try:
-                tenant_uuid = uuid.UUID(tenant_header)
-                set_current_tenant_id(tenant_uuid)
-            except (ValueError, TypeError):
-                set_current_tenant_id(None)
-        elif hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
-            user_cinema_id = getattr(request.user, "cinema_id", None)
-            if user_cinema_id:
-                set_current_tenant_id(user_cinema_id)
-            else:
-                set_current_tenant_id(None)
+        tenant_obj = getattr(request, "tenant", None)
+        if tenant_obj and getattr(tenant_obj, "schema_name", "") != "public":
+            set_current_tenant(tenant_obj)
         else:
-            set_current_tenant_id(None)
+            tenant_header = request.headers.get("X-Cinema-ID")
+            if tenant_header:
+                try:
+                    tenant_uuid = uuid.UUID(tenant_header)
+                    set_current_tenant_id(tenant_uuid)
+                except (ValueError, TypeError):
+                    set_current_tenant(None)
+            elif hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
+                user_cinema_id = getattr(request.user, "cinema_id", None)
+                if user_cinema_id:
+                    set_current_tenant_id(user_cinema_id)
+                else:
+                    set_current_tenant(None)
+            else:
+                set_current_tenant(None)
 
         try:
             response = self.get_response(request)

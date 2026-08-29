@@ -9,7 +9,10 @@ from .base import *  # noqa: F403
 
 DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1,0.0.0.0,.localhost,.africinemas.com,africinemas.com,testserver",
+).split(",")
 
 # CORS & CSRF Configuration for local Vite dev server
 CORS_ALLOWED_ORIGINS = [

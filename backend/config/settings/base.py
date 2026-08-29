@@ -59,6 +59,7 @@ DEFAULT_PLATFORM_FEE_PERCENT = "10.00"
 
 
 MIDDLEWARE = [
+    "django_tenants.middleware.main.TenantMainMiddleware",  # Must be first to resolve tenant schema
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -71,7 +72,9 @@ MIDDLEWARE = [
     "apps.core.middleware.TenantContextMiddleware",
 ]
 
-ROOT_URLCONF = "config.urls"
+PUBLIC_SCHEMA_URLCONF = "config.urls_public"
+ROOT_URLCONF = "config.urls_tenant"
+PUBLIC_SCHEMA_NAME = "public"
 
 TEMPLATES = [
     {
