@@ -4,6 +4,7 @@ Provides schema-per-tenant isolation for arbitrary cinema operators and mall loc
 along with branding theme design tokens and hybrid fintech configurations (IntaSend vs Daraja).
 """
 
+import logging
 import re
 from decimal import Decimal
 from typing import Any
@@ -15,6 +16,9 @@ from django.utils.translation import gettext_lazy as _
 from django_tenants.models import DomainMixin, TenantMixin
 
 from apps.core.models import TimeStampedModel, UUIDModel
+
+logger = logging.getLogger(__name__)
+
 
 HEX_COLOR_VALIDATOR = RegexValidator(
     regex=r"^#[0-9A-Fa-f]{6}$",
@@ -145,10 +149,31 @@ class CinemaDomain(DomainMixin, UUIDModel, TimeStampedModel):
         return f"{self.domain} ({self.tenant.slug})"
 
 
+def get_contrasting_text_color(hex_color: str) -> str:
+    """
+    Calculate WCAG-compliant high-contrast foreground color (white or near-black)
+    based on relative luminance of the provided background hex color.
+    """
+    clean_hex = hex_color.lstrip("#")
+    if len(clean_hex) != 6:
+        return "#FFFFFF"
+    try:
+        r, g, b = (int(clean_hex[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+        # Relative luminance formula (sRGB)
+        r_lin = r / 12.92 if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
+        g_lin = g / 12.92 if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
+        b_lin = b / 12.92 if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
+        luminance = 0.2126 * r_lin + 0.7152 * g_lin + 0.0722 * b_lin
+        return "#111111" if luminance > 0.4 else "#FFFFFF"
+    except (ValueError, TypeError):
+        return "#FFFFFF"
+
+
 class CinemaTheme(UUIDModel, TimeStampedModel):
     """
     Branding and styling tokens for a cinema storefront.
     Dynamically injected as CSS custom properties in the React frontend.
+    Includes semantic tokens, WCAG accessibility helpers, and draft/publish state.
     """
 
     tenant = models.OneToOneField(
@@ -175,20 +200,38 @@ class CinemaTheme(UUIDModel, TimeStampedModel):
         default="",
         help_text=_("Default banner backdrop image for cinema homepage."),
     )
+
+    # Core Brand Tokens (African Cinematic Ruby & Warm Savannah Gold defaults)
     primary_color = models.CharField(
         _("primary color"),
         max_length=7,
-        default="#E50914",
+        default="#E61C24",
         validators=[HEX_COLOR_VALIDATOR],
-        help_text=_("Primary brand accent color (hex e.g. #E50914)."),
+        help_text=_("Primary brand accent color (hex e.g. #E61C24)."),
+    )
+    primary_hover = models.CharField(
+        _("primary hover color"),
+        max_length=7,
+        default="#B8121B",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Hover state for primary buttons and interactive accents."),
     )
     secondary_color = models.CharField(
         _("secondary color"),
         max_length=7,
         default="#E5A93B",
         validators=[HEX_COLOR_VALIDATOR],
-        help_text=_("Secondary badge/highlight color (hex e.g. #E5A93B)."),
+        help_text=_("Secondary badge/VIP highlight color (hex e.g. #E5A93B)."),
     )
+    accent_color = models.CharField(
+        _("accent highlight color"),
+        max_length=7,
+        default="#3B82F6",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Tertiary accent for badges and status highlights."),
+    )
+
+    # Semantic Surfaces & Backgrounds
     background_color = models.CharField(
         _("background color"),
         max_length=7,
@@ -197,11 +240,48 @@ class CinemaTheme(UUIDModel, TimeStampedModel):
         help_text=_("Main application background color (hex e.g. #0B0B0E)."),
     )
     surface_color = models.CharField(
-        _("surface elevated color"),
+        _("surface container color"),
         max_length=7,
         default="#14141A",
         validators=[HEX_COLOR_VALIDATOR],
         help_text=_("Card / container surface color (hex e.g. #14141A)."),
+    )
+    surface_elevated = models.CharField(
+        _("surface elevated color"),
+        max_length=7,
+        default="#1E1E26",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Elevated modals, dropdowns, and navigation headers."),
+    )
+    border_color = models.CharField(
+        _("subtle border color"),
+        max_length=7,
+        default="#2A2A36",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Dividers and component borders."),
+    )
+
+    # Semantic Typography & Text Colors
+    text_primary = models.CharField(
+        _("primary text color"),
+        max_length=7,
+        default="#FFFFFF",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("High-emphasis headings and body text."),
+    )
+    text_muted = models.CharField(
+        _("muted text color"),
+        max_length=7,
+        default="#9CA3AF",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Low-emphasis captions and subtitles."),
+    )
+    text_on_primary = models.CharField(
+        _("text on primary color"),
+        max_length=7,
+        default="#FFFFFF",
+        validators=[HEX_COLOR_VALIDATOR],
+        help_text=_("Foreground text on primary buttons (auto-calculated for WCAG contrast)."),
     )
     font_display = models.CharField(
         _("display typography font"),
@@ -222,19 +302,88 @@ class CinemaTheme(UUIDModel, TimeStampedModel):
         help_text=_("Global component border radius (e.g. 8px, 12px)."),
     )
 
+    # Publishing & Versioning Controls
+    is_published = models.BooleanField(
+        _("is theme published"),
+        default=True,
+        help_text=_(
+            "Whether this theme is active on the live storefront or currently in preview/draft mode."
+        ),
+    )
+    version = models.PositiveIntegerField(
+        _("theme version"),
+        default=1,
+        help_text=_("Monotonically increasing version counter for CDN and browser cache busting."),
+    )
+
     class Meta:
         verbose_name = _("Cinema Theme")
         verbose_name_plural = _("Cinema Themes")
 
     def clean(self) -> None:
         super().clean()
-        HEX_COLOR_VALIDATOR(self.primary_color)
-        HEX_COLOR_VALIDATOR(self.secondary_color)
-        HEX_COLOR_VALIDATOR(self.background_color)
-        HEX_COLOR_VALIDATOR(self.surface_color)
+        for field_name in (
+            "primary_color",
+            "primary_hover",
+            "secondary_color",
+            "accent_color",
+            "background_color",
+            "surface_color",
+            "surface_elevated",
+            "border_color",
+            "text_primary",
+            "text_muted",
+            "text_on_primary",
+        ):
+            val = getattr(self, field_name, None)
+            if val:
+                HEX_COLOR_VALIDATOR(val)
+
+        # Auto-derive high contrast foreground if text_on_primary was not explicitly overridden
+        if not self.text_on_primary or self.text_on_primary == "#FFFFFF":
+            self.text_on_primary = get_contrasting_text_color(self.primary_color)
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.clean()
+        super().save(*args, **kwargs)
+        self.invalidate_cache()
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        self.invalidate_cache()
+        return super().delete(*args, **kwargs)
+
+    def invalidate_cache(self) -> None:
+        """Purge theme cache in Redis when theme settings are modified."""
+        try:
+            from django.core.cache import cache
+
+            if hasattr(self, "tenant") and self.tenant and self.tenant.slug:
+                cache.delete(f"tenant:theme:{self.tenant.slug}")
+                cache.delete(f"tenant:bootstrap:{self.tenant.slug}")
+        except Exception as exc:
+            logger.debug("Failed to purge tenant theme cache: %s", exc)
+
+    def to_css_variables(self) -> dict[str, str]:
+        """Generate dynamic CSS custom property mapping for frontend theme injection."""
+        return {
+            "--color-primary": self.primary_color,
+            "--color-primary-hover": self.primary_hover,
+            "--color-secondary": self.secondary_color,
+            "--color-accent": self.accent_color,
+            "--bg-app": self.background_color,
+            "--bg-surface": self.surface_color,
+            "--bg-surface-elevated": self.surface_elevated,
+            "--border-subtle": self.border_color,
+            "--text-primary": self.text_primary,
+            "--text-muted": self.text_muted,
+            "--text-on-primary": self.text_on_primary,
+            "--font-family-display": self.font_display,
+            "--font-family-body": self.font_body,
+            "--radius-md": self.border_radius,
+        }
 
     def __str__(self) -> str:
-        return f"Theme for {self.tenant.name}"
+        return f"Theme for {self.tenant.name} (v{self.version})"
 
 
 class CinemaPaymentConfig(UUIDModel, TimeStampedModel):

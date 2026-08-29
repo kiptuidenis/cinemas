@@ -110,14 +110,30 @@ def test_cinema_theme_creation_and_default_tokens() -> None:
 
     theme = CinemaTheme.objects.create(tenant=tenant)
 
-    assert theme.primary_color == "#E50914"
+    assert theme.primary_color == "#E61C24"
+    assert theme.primary_hover == "#B8121B"
     assert theme.secondary_color == "#E5A93B"
+    assert theme.accent_color == "#3B82F6"
     assert theme.background_color == "#0B0B0E"
     assert theme.surface_color == "#14141A"
+    assert theme.surface_elevated == "#1E1E26"
+    assert theme.border_color == "#2A2A36"
+    assert theme.text_primary == "#FFFFFF"
+    assert theme.text_muted == "#9CA3AF"
+    assert theme.text_on_primary == "#FFFFFF"  # High contrast on ruby red
     assert theme.font_display == "'Outfit', sans-serif"
     assert theme.font_body == "'Inter', sans-serif"
     assert theme.border_radius == "8px"
-    assert str(theme) == "Theme for Century Cinemax"
+    assert theme.is_published is True
+    assert theme.version == 1
+    assert str(theme) == "Theme for Century Cinemax (v1)"
+
+    # Verify CSS variables export for frontend token injection
+    css_vars = theme.to_css_variables()
+    assert css_vars["--color-primary"] == "#E61C24"
+    assert css_vars["--color-secondary"] == "#E5A93B"
+    assert css_vars["--bg-app"] == "#0B0B0E"
+    assert css_vars["--text-on-primary"] == "#FFFFFF"
 
 
 @pytest.mark.django_db
@@ -137,6 +153,25 @@ def test_cinema_theme_hex_color_validation() -> None:
 
     with pytest.raises(ValidationError):
         theme.full_clean()
+
+
+@pytest.mark.django_db
+def test_cinema_theme_contrast_auto_derivation() -> None:
+    """Verify CinemaTheme auto-derives high contrast foreground color for light primary colors."""
+    tenant = CinemaTenant.objects.create(
+        name="Sunny Cinema",
+        slug="sunny-cinema",
+        city="Mombasa",
+        contact_email="hello@sunny.co.ke",
+    )
+
+    # Light yellow background should automatically set text_on_primary to dark #111111
+    theme = CinemaTheme.objects.create(
+        tenant=tenant,
+        primary_color="#FACC15",
+    )
+
+    assert theme.text_on_primary == "#111111"
 
 
 @pytest.mark.django_db
