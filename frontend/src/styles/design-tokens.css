@@ -18,7 +18,15 @@
   --border-focus: #e5a93b;
   --border-glow: rgba(229, 169, 59, 0.4);
 
-  /* Color Palette — Brand & Accents */
+  /* Semantic Dynamic Brand Tokens (Injected dynamically per tenant) */
+  --color-primary: #e61c24;
+  --color-primary-hover: #c0141b;
+  --color-secondary: #e5a93b;
+  --color-accent: #00e5ff;
+  --text-on-primary: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  /* Color Palette — Static Brand Reference */
   --color-gold: #e5a93b;
   --color-gold-hover: #f3be58;
   --color-gold-dim: rgba(229, 169, 59, 0.15);

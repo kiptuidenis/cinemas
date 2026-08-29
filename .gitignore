@@ -76,3 +76,6 @@ resources/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+#skills
+.agents/

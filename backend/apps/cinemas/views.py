@@ -16,9 +16,7 @@ from rest_framework.views import APIView
 
 from apps.cinemas.models import CinemaPaymentConfig, CinemaTenant, CinemaTheme
 from apps.cinemas.serializers import (
-    CinemaIdentitySerializer,
-    CinemaThemeSerializer,
-    SanitizedPaymentCapabilitiesSerializer,
+    TenantBootstrapSerializer,
 )
 
 
@@ -45,25 +43,26 @@ class TenantBootstrapView(APIView):
         cached_payload: dict[str, Any] | None = cache.get(cache_key)
 
         if cached_payload is not None:
-            etag = hashlib.sha256(
-                json.dumps(cached_payload, sort_keys=True).encode("utf-8")
-            ).hexdigest()[:32]
+            etag = f'"{hashlib.sha256(json.dumps(cached_payload, sort_keys=True).encode("utf-8")).hexdigest()[:32]}"'
+            if_none_match = request.headers.get("If-None-Match")
+            if if_none_match and if_none_match == etag:
+                response = Response(status=status.HTTP_304_NOT_MODIFIED)
+                response["Cache-Control"] = "public, max-age=300, s-maxage=3600"
+                response["ETag"] = etag
+                return response
+
             response = Response(cached_payload, status=status.HTTP_200_OK)
             response["Cache-Control"] = "public, max-age=300, s-maxage=3600"
-            response["ETag"] = f'"{etag}"'
+            response["ETag"] = etag
             return response
 
-        # 1. Cinema Identity
-        cinema_data = CinemaIdentitySerializer(tenant).data
-
-        # 2. Dynamic Theme Tokens (with fallback if uncustomized)
+        # 1. Dynamic Theme Tokens (with fallback if uncustomized)
         try:
             theme = tenant.theme
         except CinemaTheme.DoesNotExist:
             theme = CinemaTheme(tenant=tenant)
-        theme_data = CinemaThemeSerializer(theme).data
 
-        # 3. Sanitized Payment Capabilities
+        # 2. Sanitized Payment Capabilities
         try:
             payment_config = tenant.payment_config
             gateway_mode = payment_config.gateway_mode
@@ -75,19 +74,28 @@ class TenantBootstrapView(APIView):
             "accepts_mpesa": True,
             "accepts_card": gateway_mode == CinemaPaymentConfig.GatewayMode.INTASEND_ESCROW,
         }
-        payment_data = SanitizedPaymentCapabilitiesSerializer(payment_capabilities).data
 
-        payload: dict[str, Any] = {
-            "cinema": cinema_data,
-            "theme": theme_data,
-            "payment": payment_data,
-        }
+        # 3. Combined Serialization
+        payload: dict[str, Any] = TenantBootstrapSerializer(
+            {
+                "cinema": tenant,
+                "theme": theme,
+                "payment": payment_capabilities,
+            }
+        ).data
 
         # Cache in Redis for 1 hour (3600 seconds)
         cache.set(cache_key, payload, timeout=3600)
 
-        etag = hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:32]
+        etag = f'"{hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()[:32]}"'
+        if_none_match = request.headers.get("If-None-Match")
+        if if_none_match and if_none_match == etag:
+            response = Response(status=status.HTTP_304_NOT_MODIFIED)
+            response["Cache-Control"] = "public, max-age=300, s-maxage=3600"
+            response["ETag"] = etag
+            return response
+
         response = Response(payload, status=status.HTTP_200_OK)
         response["Cache-Control"] = "public, max-age=300, s-maxage=3600"
-        response["ETag"] = f'"{etag}"'
+        response["ETag"] = etag
         return response

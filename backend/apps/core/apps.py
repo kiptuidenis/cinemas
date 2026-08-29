@@ -8,7 +8,7 @@ try:
     import django.utils.cache
 
     if not hasattr(django.utils.cache, "cc_delim_re"):
-        django.utils.cache.cc_delim_re = re.compile("\\s*,\\s*")
+        django.utils.cache.cc_delim_re = re.compile(r"\s*,\s*")  # type: ignore[attr-defined]
 except (ImportError, AttributeError):
     pass
 
@@ -29,7 +29,7 @@ class CoreConfig(AppConfig):
             import django.utils.cache
 
             if not hasattr(django.utils.cache, "cc_delim_re"):
-                django.utils.cache.cc_delim_re = re.compile("\\s*,\\s*")
+                django.utils.cache.cc_delim_re = re.compile(r"\s*,\s*")  # type: ignore[attr-defined]
         except (ImportError, AttributeError):
             pass
 
