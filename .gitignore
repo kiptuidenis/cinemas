@@ -64,6 +64,9 @@ playwright/.cache/
 # Docker
 .docker/
 
+# Local Resources & Docs
+resources/
+
 # IDE & Operating System
 .idea/
 .vscode/

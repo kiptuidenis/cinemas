@@ -22,17 +22,19 @@ SECRET_KEY = os.environ.get(
     "django-insecure-dev-fallback-key-min-50-characters-for-local-testing-only-12345!",
 )
 
-# Application definition
-DJANGO_APPS = [
+# ------------------------------------------------------------------------------
+# Multi-Tenancy Application Definition (django-tenants)
+# ------------------------------------------------------------------------------
+SHARED_APPS = [
+    "django_tenants",  # Mandatory, must be listed before django.contrib.admin
+    "apps.cinemas.apps.CinemasConfig",
+    "apps.core.apps.CoreConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-]
-
-THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -40,11 +42,21 @@ THIRD_PARTY_APPS = [
     "django_filters",
 ]
 
-LOCAL_APPS = [
+TENANT_APPS = [
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
     "apps.core.apps.CoreConfig",
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = list(dict.fromkeys(SHARED_APPS + TENANT_APPS))
+
+TENANT_MODEL = "cinemas.CinemaTenant"
+TENANT_DOMAIN_MODEL = "cinemas.CinemaDomain"
+
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+
+DEFAULT_PLATFORM_FEE_PERCENT = "10.00"
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

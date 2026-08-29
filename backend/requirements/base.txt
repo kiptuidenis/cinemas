@@ -5,8 +5,12 @@ djangorestframework-simplejwt>=5.3.1
 django-cors-headers>=4.4.0
 django-filter>=24.3
 
-# Database & Drivers
+# Database & Multi-Tenancy Drivers
 psycopg[binary]>=3.2.1
+django-tenants>=3.14.0
+
+# Payment Gateways & Fintech
+intasend-python>=1.1.2
 
 # Caching & Background Queues
 redis>=5.0.8
