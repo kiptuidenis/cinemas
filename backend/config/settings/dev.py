@@ -30,11 +30,11 @@ CSRF_TRUSTED_ORIGINS = [
 # Fallback to local SQLite if DATABASE_URL is not set or empty
 db_url = os.environ.get("DATABASE_URL", "").strip()
 
-if db_url and db_url.startswith("postgres"):
+if db_url and (db_url.startswith("postgres://") or db_url.startswith("postgresql://")):
     parsed = urlparse(db_url)
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
+            "ENGINE": "django_tenants.postgresql_backend",
             "NAME": parsed.path.lstrip("/"),
             "USER": parsed.username or "cinema_user",
             "PASSWORD": parsed.password or "cinema_password",
@@ -43,6 +43,7 @@ if db_url and db_url.startswith("postgres"):
             "CONN_MAX_AGE": 60,
         }
     }
+
 else:
     DATABASES = {
         "default": {
