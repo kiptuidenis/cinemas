@@ -668,3 +668,92 @@ class PlatformAuditLog(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"[{self.created_at}] {self.action} - {self.tenant_slug or 'platform'}"
+
+
+class TenantOperationalConfig(UUIDModel, TimeStampedModel):
+    """
+    Turnkey operational defaults injected into new cinema tenants.
+    Configures booking seat hold TTLs, maximum ticket limits, notification preferences,
+    and the administrative onboarding checklist.
+    """
+
+    tenant = models.OneToOneField(
+        CinemaTenant,
+        on_delete=models.CASCADE,
+        related_name="operational_config",
+        verbose_name=_("cinema tenant"),
+    )
+    hold_ttl_seconds = models.PositiveIntegerField(
+        _("seat hold TTL (seconds)"),
+        default=420,
+        help_text=_(
+            "Duration in seconds that selected seats are held during checkout (default: 420s / 7 mins)."
+        ),
+    )
+    max_seats_per_order = models.PositiveIntegerField(
+        _("max seats per order"),
+        default=8,
+        help_text=_("Maximum number of seats bookable in a single order (default: 8)."),
+    )
+    booking_confirmation_email = models.BooleanField(
+        _("email booking confirmations"),
+        default=True,
+        help_text=_("Send automated email confirmation and QR tickets upon successful payment."),
+    )
+    booking_confirmation_sms = models.BooleanField(
+        _("SMS booking confirmations"),
+        default=True,
+        help_text=_("Send automated SMS confirmation and short booking code upon payment."),
+    )
+    onboarding_checklist = models.JSONField(
+        _("onboarding checklist"),
+        default=list,
+        blank=True,
+        help_text=_("Interactive launch checklist tracking setup milestones."),
+    )
+
+    class Meta:
+        verbose_name = _("Tenant Operational Configuration")
+        verbose_name_plural = _("Tenant Operational Configurations")
+
+    @classmethod
+    def get_default_checklist(cls) -> list[dict[str, Any]]:
+        return [
+            {
+                "id": "add_screen",
+                "title": "Add Screen",
+                "category": "operations",
+                "completed": False,
+            },
+            {
+                "id": "schedule_showtime",
+                "title": "Schedule Showtime",
+                "category": "programming",
+                "completed": False,
+            },
+            {
+                "id": "connect_payments",
+                "title": "Connect Payments",
+                "category": "billing",
+                "completed": False,
+            },
+        ]
+
+    def mark_checklist_item(self, item_id: str, completed: bool = True) -> None:
+        """Toggle checklist task completion status."""
+        items: list[dict[str, Any]] = list(self.onboarding_checklist or [])
+        found = False
+        for item in items:
+            if item.get("id") == item_id:
+                item["completed"] = completed
+                found = True
+                break
+        if not found:
+            items.append(
+                {"id": item_id, "title": item_id.replace("_", " ").title(), "completed": completed}
+            )
+        self.onboarding_checklist = items
+        self.save(update_fields=["onboarding_checklist"])
+
+    def __str__(self) -> str:
+        return f"OperationalConfig for {self.tenant.name}"
