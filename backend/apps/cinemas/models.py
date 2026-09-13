@@ -10,6 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.text import slugify
@@ -150,6 +151,10 @@ class CinemaTenant(TenantMixin, UUIDModel, TimeStampedModel):
             self.slug = slugify(self.slug)
         if not getattr(self, "schema_name", None):
             self.schema_name = self.generate_schema_name(self.slug)
+        elif self.pk:
+            orig = CinemaTenant.objects.filter(pk=self.pk).values("schema_name").first()
+            if orig and orig["schema_name"] != self.schema_name:
+                raise ValidationError(_("Tenant schema_name cannot be mutated after creation."))
         SCHEMA_NAME_VALIDATOR(self.schema_name)
 
     def save(self, *args: Any, **kwargs: Any) -> None:
