@@ -27,6 +27,7 @@ SECRET_KEY = os.environ.get(
 # ------------------------------------------------------------------------------
 SHARED_APPS = [
     "django_tenants",  # Mandatory, must be listed before django.contrib.admin
+    "apps.accounts.apps.AccountsConfig",
     "apps.cinemas.apps.CinemasConfig",
     "apps.core.apps.CoreConfig",
     "django.contrib.admin",
@@ -44,11 +45,18 @@ SHARED_APPS = [
 
 TENANT_APPS = [
     "django.contrib.contenttypes",
-    "django.contrib.auth",
     "apps.core.apps.CoreConfig",
 ]
 
 INSTALLED_APPS = list(dict.fromkeys(SHARED_APPS + TENANT_APPS))
+
+AUTH_USER_MODEL = "accounts.User"
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+]
 
 TENANT_MODEL = "cinemas.CinemaTenant"
 TENANT_DOMAIN_MODEL = "cinemas.CinemaDomain"
@@ -144,6 +152,9 @@ REST_FRAMEWORK = {
         "auth_login": "5/minute",
         "payment_initiate": "5/minute",
         "bootstrap": "120/minute",
+        "onboarding_register": "10/hour",
+        "subdomain_check": "60/minute",
+        "onboarding_status": "120/minute",
     },
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",

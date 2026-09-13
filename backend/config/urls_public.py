@@ -5,7 +5,7 @@ Handles marketing, platform administration, cinema onboarding/registration, and 
 
 from django.contrib import admin
 from django.http import HttpRequest, JsonResponse
-from django.urls import path
+from django.urls import include, path
 
 
 def public_health_check(request: HttpRequest) -> JsonResponse:
@@ -24,4 +24,5 @@ def public_health_check(request: HttpRequest) -> JsonResponse:
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/health/", public_health_check, name="public-api-health"),
+    path("api/v1/auth/", include("apps.accounts.urls")),
 ]

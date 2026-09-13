@@ -36,6 +36,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/*" = [
     "S101", # allow assert in tests
+    "S105", # allow hardcoded password strings in tests
+    "S106", # allow hardcoded password arguments in tests
     "S603", # allow subprocess call in tests
     "S607", # allow partial executable path in tests
 ]

@@ -27,5 +27,6 @@ def tenant_health_check(request: HttpRequest) -> JsonResponse:
 
 urlpatterns = [
     path("api/v1/health/", tenant_health_check, name="tenant-api-health"),
+    path("api/v1/auth/", include("apps.accounts.urls")),
     path("api/v1/", include("apps.cinemas.urls")),
 ]
