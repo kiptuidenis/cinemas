@@ -25,4 +25,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/health/", public_health_check, name="public-api-health"),
     path("api/v1/auth/", include("apps.accounts.urls")),
+    path("api/v1/onboarding/", include("apps.cinemas.urls_onboarding")),
 ]

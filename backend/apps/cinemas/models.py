@@ -9,6 +9,7 @@ import re
 from decimal import Decimal
 from typing import Any
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.text import slugify
@@ -86,6 +87,53 @@ class CinemaTenant(TenantMixin, UUIDModel, TimeStampedModel):
         help_text=_("Designates whether this cinema is active and allowed to accept bookings."),
     )
 
+    class ProvisioningStatus(models.TextChoices):
+        PENDING = "PENDING", _("Pending")
+        PROVISIONING = "PROVISIONING", _("Provisioning")
+        READY = "READY", _("Ready")
+        FAILED = "FAILED", _("Failed")
+        RETRYING = "RETRYING", _("Retrying")
+        SUSPENDED = "SUSPENDED", _("Suspended")
+        DELETING = "DELETING", _("Deleting")
+
+    provisioning_status = models.CharField(
+        _("provisioning status"),
+        max_length=20,
+        choices=ProvisioningStatus.choices,
+        default=ProvisioningStatus.PENDING,
+        db_index=True,
+        help_text=_("Current lifecycle and provisioning state of the cinema tenant."),
+    )
+    provisioning_started_at = models.DateTimeField(
+        _("provisioning started at"),
+        null=True,
+        blank=True,
+        help_text=_("Timestamp when async schema provisioning was started."),
+    )
+    provisioning_completed_at = models.DateTimeField(
+        _("provisioning completed at"),
+        null=True,
+        blank=True,
+        help_text=_("Timestamp when schema provisioning and turnkey seeding finished."),
+    )
+    last_provisioning_attempt_at = models.DateTimeField(
+        _("last provisioning attempt at"),
+        null=True,
+        blank=True,
+        help_text=_("Timestamp of the most recent provisioning runner attempt."),
+    )
+    provisioning_error = models.TextField(
+        _("provisioning error details"),
+        blank=True,
+        default="",
+        help_text=_("Error diagnostic trace if provisioning failed."),
+    )
+    provisioning_attempts = models.PositiveIntegerField(
+        _("provisioning attempts"),
+        default=0,
+        help_text=_("Total number of provisioning execution attempts."),
+    )
+
     # Disable auto schema creation during non-postgres or test fixtures unless explicitly called
     auto_create_schema = False
     auto_drop_schema = False
@@ -138,6 +186,28 @@ class CinemaDomain(DomainMixin, UUIDModel, TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="domains",
         verbose_name=_("cinema tenant"),
+    )
+
+    class DomainStatus(models.TextChoices):
+        ACTIVE = "ACTIVE", _("Active")
+        COOLING_DOWN = "COOLING_DOWN", _("Cooling Down")
+        RELEASED = "RELEASED", _("Released")
+
+    status = models.CharField(
+        _("domain status"),
+        max_length=20,
+        choices=DomainStatus.choices,
+        default=DomainStatus.ACTIVE,
+        db_index=True,
+        help_text=_("Current lifecycle status of this domain mapping."),
+    )
+    cooldown_until = models.DateTimeField(
+        _("cooldown quarantine expiration"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Enforces 90-day quarantine before a released domain/subdomain can be re-registered."
+        ),
     )
 
     class Meta:
@@ -483,3 +553,118 @@ class CinemaPaymentConfig(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"PaymentConfig ({self.gateway_mode} - {self.platform_fee_percent}%) for {self.tenant.name}"
+
+
+class OnboardingRequest(UUIDModel, TimeStampedModel):
+    """
+    Tracks tenant onboarding requests for strict database-level idempotency and audit replay.
+    Guarantees at-most-once creation across distributed retry attempts.
+    """
+
+    class Status(models.TextChoices):
+        RECEIVED = "RECEIVED", _("Received")
+        COMMITTED = "COMMITTED", _("Committed")
+        FAILED = "FAILED", _("Failed")
+
+    idempotency_key = models.CharField(
+        _("idempotency key"),
+        max_length=128,
+        unique=True,
+        db_index=True,
+        help_text=_("Client-provided unique key from X-Idempotency-Key HTTP header."),
+    )
+    request_hash = models.CharField(
+        _("request payload hash"),
+        max_length=64,
+        help_text=_("SHA-256 canonical hash of registration payload to detect payload mutation."),
+    )
+    status = models.CharField(
+        _("request status"),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.RECEIVED,
+        db_index=True,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="onboarding_requests",
+        verbose_name=_("operator user"),
+    )
+    tenant = models.ForeignKey(
+        CinemaTenant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="onboarding_requests",
+        verbose_name=_("cinema tenant"),
+    )
+    response_payload = models.JSONField(
+        _("cached response payload"),
+        default=dict,
+        blank=True,
+        help_text=_("Exact response body returned to client for idempotent replay."),
+    )
+    response_status_code = models.PositiveIntegerField(
+        _("cached response status code"),
+        default=202,
+        help_text=_("HTTP status code for idempotent replay (e.g. 202)."),
+    )
+
+    class Meta:
+        verbose_name = _("Onboarding Request")
+        verbose_name_plural = _("Onboarding Requests")
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"OnboardingRequest ({self.idempotency_key}) - {self.status}"
+
+
+class PlatformAuditLog(UUIDModel, TimeStampedModel):
+    """
+    Append-only security and operational audit trail for tenant lifecycle events.
+    """
+
+    action = models.CharField(
+        _("action"),
+        max_length=100,
+        db_index=True,
+        help_text=_("Security action or event name (e.g. TENANT_REGISTERED, PROVISIONING_FAILED)."),
+    )
+    actor_email = models.CharField(
+        _("actor email"),
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_("Email address of user or system agent initiating action."),
+    )
+    tenant_slug = models.CharField(
+        _("tenant slug"),
+        max_length=63,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=_("Associated cinema tenant slug."),
+    )
+    ip_address = models.GenericIPAddressField(
+        _("client IP address"),
+        null=True,
+        blank=True,
+        help_text=_("Origin IP address for the audit record."),
+    )
+    details = models.JSONField(
+        _("event metadata"),
+        default=dict,
+        blank=True,
+        help_text=_("Arbitrary structured metadata about this audit event."),
+    )
+
+    class Meta:
+        verbose_name = _("Platform Audit Log")
+        verbose_name_plural = _("Platform Audit Logs")
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"[{self.created_at}] {self.action} - {self.tenant_slug or 'platform'}"
