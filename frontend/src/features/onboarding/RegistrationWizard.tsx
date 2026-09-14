@@ -401,7 +401,7 @@ export const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               <input
                 id="cinema_name"
                 type="text"
-                placeholder="e.g. Westgate Cinema"
+                placeholder="e.g. Premier Cinema Multiplex"
                 className="form-input"
                 {...register("cinema_name")}
               />
@@ -552,7 +552,7 @@ export const RegistrationWizard: React.FC<RegistrationWizardProps> = ({
               <input
                 id="address"
                 type="text"
-                placeholder="e.g. 2nd Floor, Westgate Shopping Mall, Westlands"
+                placeholder="e.g. 2nd Floor, Apex Business Center, Nairobi"
                 className="form-input"
                 {...register("address")}
               />

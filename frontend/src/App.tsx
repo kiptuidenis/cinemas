@@ -444,7 +444,8 @@ export const App: React.FC = () => {
 
         /* Banner */
         .landing-banner-grid {
-          background: #111111;
+          background: radial-gradient(circle at 82% 40%, rgba(212, 255, 0, 0.12) 0%, rgba(17, 17, 17, 0) 60%), #111111;
+          border: 1px solid rgba(212, 255, 0, 0.22);
           border-radius: 40px;
           padding: 54px 54px 40px 54px;
           display: grid;
@@ -455,6 +456,7 @@ export const App: React.FC = () => {
           min-height: 320px;
           box-sizing: border-box;
           overflow: hidden;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
         }
         .landing-banner-mockup-col {
           position: relative;
@@ -462,15 +464,38 @@ export const App: React.FC = () => {
           justify-content: flex-end;
         }
         .landing-banner-mockup {
-          width: 300px;
-          background: #FFFFFF;
+          width: 320px;
+          background: #18181C;
           border-radius: 28px;
-          padding: 24px 20px;
-          color: #111111;
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+          padding: 26px 22px;
+          color: #FFFFFF;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(212, 255, 0, 0.08);
           transform: translateY(40px);
-          border: 1px solid #EBEBEB;
-          transition: transform 250ms ease;
+          border: 1px solid rgba(212, 255, 0, 0.28);
+          transition: transform 250ms ease, box-shadow 250ms ease;
+        }
+        .landing-banner-mockup:hover {
+          transform: translateY(34px);
+          box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), 0 0 50px rgba(212, 255, 0, 0.16);
+        }
+        .landing-banner-btn {
+          background: #D4FF00;
+          color: #111111;
+          border: none;
+          border-radius: 999px;
+          padding: 14px 28px;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 20px rgba(212, 255, 0, 0.35);
+          transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+        .landing-banner-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(212, 255, 0, 0.5);
         }
         @media (max-width: 991px) {
           .landing-banner-grid {
@@ -479,13 +504,16 @@ export const App: React.FC = () => {
             border-radius: 28px;
           }
           .landing-banner-mockup-col {
-            justifyContent: center;
+            justify-content: center;
             margin-top: 16px;
           }
           .landing-banner-mockup {
             transform: translateY(0);
             width: 100%;
             max-width: 320px;
+          }
+          .landing-banner-mockup:hover {
+            transform: translateY(-3px);
           }
         }
 
@@ -821,13 +849,13 @@ export const App: React.FC = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Film size={16} color="#D4FF00" />
                   <span style={{ fontWeight: 700, fontSize: "0.85rem" }}>
-                    Anga Diamond Plaza — Console
+                    Apex Cinema Multiplex — Console
                   </span>
                 </div>
                 <div
@@ -847,7 +875,7 @@ export const App: React.FC = () => {
               <div style={{ fontSize: "0.75rem", color: "#888888", textTransform: "uppercase" }}>
                 Today's Box Office Gross
               </div>
-              <div style={{ fontSize: "1.4rem", fontWeight: 800, marginTop: 2 }}>
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, marginTop: 2, color: "#FFFFFF" }}>
                 KES 486,200.00
               </div>
               <div style={{ fontSize: "0.75rem", color: "#05C46B", fontWeight: 600 }}>
@@ -855,66 +883,51 @@ export const App: React.FC = () => {
               </div>
 
               {/* Glowing Line Chart */}
-              <div style={{ height: 80, margin: "12px 0", position: "relative" }}>
-                <svg width="100%" height="100%" viewBox="0 0 280 80" fill="none">
+              <div style={{ height: 75, margin: "14px 0", position: "relative" }}>
+                <svg width="100%" height="100%" viewBox="0 0 280 75" fill="none">
                   <path
-                    d="M0 60 C30 50, 60 70, 90 40 C120 10, 150 50, 190 20 C230 -10, 250 30, 280 15"
+                    d="M0 55 C30 45, 60 65, 90 35 C120 10, 150 45, 190 18 C230 -8, 250 25, 280 12"
                     stroke="#D4FF00"
                     strokeWidth="3"
                     strokeLinecap="round"
                   />
-                  <circle cx="280" cy="15" r="5" fill="#D4FF00" />
+                  <circle cx="280" cy="12" r="5" fill="#D4FF00" />
                 </svg>
               </div>
 
-              {/* Time Range Tabs */}
+              {/* Clean Telemetry Metrics */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                  borderTop: "1px solid #2B2B30",
+                  paddingTop: 12,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: "#888888" }}>Admissions</div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#FFFFFF" }}>
+                    1,892 Seats Sold
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: "#888888" }}>Escrow Settlement</div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#05C46B" }}>
+                    KES 437,580
+                  </div>
+                </div>
+              </div>
               <div
                 style={{
                   display: "flex",
+                  alignItems: "center",
                   justifyContent: "space-between",
-                  fontSize: "0.75rem",
+                  marginTop: 10,
+                  fontSize: "0.72rem",
                   color: "#888888",
-                  borderBottom: "1px solid #2B2B30",
-                  paddingBottom: 8,
-                  marginBottom: 10,
-                }}
-              >
-                <span>Today</span>
-                <span>Week</span>
-                <span style={{ color: "#D4FF00", fontWeight: 700 }}>Month</span>
-                <span>Q3</span>
-                <span>All</span>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "0.8rem",
-                  marginBottom: 6,
-                }}
-              >
-                <span style={{ color: "#AAAAAA" }}>Admissions</span>
-                <span style={{ fontWeight: 700 }}>1,892 Seats Sold</span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "0.75rem",
-                  color: "#05C46B",
-                  marginBottom: 4,
-                }}
-              >
-                <span>Net Escrow Settlement</span>
-                <span style={{ fontWeight: 700 }}>KES 437,580</span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "0.7rem",
-                  color: "#888888",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+                  paddingTop: 8,
                 }}
               >
                 <span>Concurrency Guard</span>
@@ -930,14 +943,14 @@ export const App: React.FC = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#111111" }}>
-                    Rupa's Cinemas Eldoret
+                  <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#111111" }}>
+                    Premier Cinema Multiplex
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "#666666", fontWeight: 500 }}>
+                  <div style={{ fontSize: "0.72rem", color: "#666666", fontWeight: 500 }}>
                     Live Screen Operations Console
                   </div>
                 </div>
@@ -968,7 +981,7 @@ export const App: React.FC = () => {
               </div>
 
               {/* Screen Selector Chips */}
-              <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "hidden" }}>
+              <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                 <span
                   style={{
                     background: "#111111",
@@ -976,7 +989,7 @@ export const App: React.FC = () => {
                     fontSize: "0.7rem",
                     fontWeight: 700,
                     borderRadius: "999px",
-                    padding: "4px 10px",
+                    padding: "4px 12px",
                   }}
                 >
                   Screen 1 (IMAX Laser)
@@ -988,10 +1001,10 @@ export const App: React.FC = () => {
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     borderRadius: "999px",
-                    padding: "4px 10px",
+                    padding: "4px 12px",
                   }}
                 >
-                  Screen 2 (3D Atmos)
+                  Screen 2
                 </span>
                 <span
                   style={{
@@ -1000,10 +1013,10 @@ export const App: React.FC = () => {
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     borderRadius: "999px",
-                    padding: "4px 10px",
+                    padding: "4px 12px",
                   }}
                 >
-                  Screen 3 (VIP Velvet)
+                  Screen 3
                 </span>
               </div>
 
@@ -1013,20 +1026,20 @@ export const App: React.FC = () => {
                   background: "#111113",
                   color: "#FFFFFF",
                   borderRadius: "16px",
-                  padding: "14px 16px",
-                  marginBottom: 12,
+                  padding: "16px 18px",
+                  marginBottom: 16,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "#AAAAAA" }}>
-                    Screen 1: Dune: Part Two (Evening)
+                  <div style={{ fontSize: "0.72rem", color: "#AAAAAA" }}>
+                    Screen 1: Evening Screening
                   </div>
                   <div
                     style={{
-                      fontSize: "1.15rem",
+                      fontSize: "1.2rem",
                       fontWeight: 800,
                       color: "#D4FF00",
                       marginTop: 2,
@@ -1043,48 +1056,13 @@ export const App: React.FC = () => {
                     width: 34,
                     height: 34,
                     borderRadius: "50%",
-                    border: "3px solid #D4FF00",
+                    border: "2px solid #D4FF00",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <TrendingUp size={16} color="#D4FF00" />
-                </div>
-              </div>
-
-              {/* Secondary Screens Status */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontSize: "0.8rem",
-                    background: "#F8F9FA",
-                    padding: "8px 12px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Film size={13} color="#111111" />
-                    <span style={{ fontWeight: 600 }}>Screen 2: Deadpool & Wolverine</span>
-                  </div>
-                  <div style={{ fontWeight: 700, color: "#05C46B" }}>86.5% Sold</div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    fontSize: "0.75rem",
-                    color: "#555555",
-                    padding: "0 4px",
-                  }}
-                >
-                  <span>Concession POS Attach Rate</span>
-                  <span style={{ fontWeight: 700, color: "#111111" }}>42% (KES 84,500)</span>
                 </div>
               </div>
 
@@ -1098,7 +1076,7 @@ export const App: React.FC = () => {
                     color: "#111111",
                     border: "1px solid #E0E2E6",
                     borderRadius: "999px",
-                    padding: "9px 8px",
+                    padding: "10px 8px",
                     fontWeight: 700,
                     fontSize: "0.78rem",
                     cursor: "pointer",
@@ -1114,7 +1092,7 @@ export const App: React.FC = () => {
                     color: "#111111",
                     border: "none",
                     borderRadius: "999px",
-                    padding: "9px 8px",
+                    padding: "10px 8px",
                     fontWeight: 700,
                     fontSize: "0.78rem",
                     cursor: "pointer",
@@ -1331,7 +1309,7 @@ export const App: React.FC = () => {
               </h3>
               <p style={{ color: "#555555", fontSize: "0.9rem", marginTop: 8, lineHeight: 1.5 }}>
                 Without complex server provisioning, launch your branded cinema portal, custom
-                subdomain (e.g. westgate.africinemas.com), and booking engine in under 5 minutes.
+                subdomain (e.g. apex.africinemas.com), and booking engine in under 5 minutes.
               </p>
               <button
                 type="button"
@@ -1622,7 +1600,7 @@ export const App: React.FC = () => {
           ====================================================================== */}
       <section id="docs" className="landing-container landing-section">
         <div className="landing-banner-grid">
-          {/* Left Side: Copy + White Pill Button */}
+          {/* Left Side: Copy + Lime Pill Button */}
           <div>
             <h2
               style={{
@@ -1652,24 +1630,7 @@ export const App: React.FC = () => {
               device.
             </p>
 
-            <button
-              type="button"
-              onClick={() => openAuth("signup")}
-              style={{
-                background: "#FFFFFF",
-                color: "#111111",
-                border: "none",
-                borderRadius: "999px",
-                padding: "14px 28px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(255, 255, 255, 0.2)",
-              }}
-            >
+            <button type="button" onClick={() => openAuth("signup")} className="landing-banner-btn">
               <Ticket size={18} color="#111111" /> Onboard Your Cinema
             </button>
           </div>
@@ -1677,30 +1638,30 @@ export const App: React.FC = () => {
           {/* Right Side: Mockup Card Overflowing the Bottom Edge */}
           <div className="landing-banner-mockup-col">
             <div className="landing-banner-mockup">
-              <div style={{ fontSize: "0.75rem", color: "#888888", textTransform: "uppercase" }}>
-                Multi-Screen Daily Gross
-              </div>
-              <div style={{ fontSize: "1.4rem", fontWeight: 800, marginTop: 2 }}>
-                KES 1,698,830.00
+              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "#FFFFFF" }}>
+                <span style={{ color: "#D4FF00", fontSize: "1.1rem", marginRight: 4 }}>KES</span>
+                1,698,830.00
               </div>
 
               <div style={{ display: "flex", gap: 8, margin: "14px 0" }}>
                 <span
                   style={{
-                    background: "#111111",
-                    color: "#FFFFFF",
+                    background: "#D4FF00",
+                    color: "#111111",
                     fontSize: "0.7rem",
                     fontWeight: 700,
                     borderRadius: "999px",
                     padding: "4px 12px",
+                    boxShadow: "0 2px 10px rgba(212, 255, 0, 0.28)",
                   }}
                 >
                   Daily Settlement
                 </span>
                 <span
                   style={{
-                    background: "#F2F3F5",
-                    color: "#555555",
+                    background: "rgba(255, 255, 255, 0.08)",
+                    color: "#AAAAAA",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
                     fontSize: "0.7rem",
                     fontWeight: 600,
                     borderRadius: "999px",
@@ -1713,22 +1674,40 @@ export const App: React.FC = () => {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.8rem",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                    paddingTop: 8,
+                  }}
                 >
-                  <span style={{ fontWeight: 600 }}>Screen 1 (IMAX)</span>
-                  <span style={{ fontWeight: 700 }}>KES 688,200</span>
+                  <span style={{ fontWeight: 600, color: "#CCCCCC" }}>Screen 1 (IMAX)</span>
+                  <span style={{ fontWeight: 700, color: "#D4FF00" }}>KES 688,200</span>
                 </div>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.8rem",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                    paddingTop: 8,
+                  }}
                 >
-                  <span style={{ fontWeight: 600 }}>Screen 2 (3D ScreenX)</span>
-                  <span style={{ fontWeight: 700 }}>KES 492,700</span>
+                  <span style={{ fontWeight: 600, color: "#CCCCCC" }}>Screen 2 (3D ScreenX)</span>
+                  <span style={{ fontWeight: 700, color: "#D4FF00" }}>KES 492,700</span>
                 </div>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.8rem",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                    paddingTop: 8,
+                  }}
                 >
-                  <span style={{ fontWeight: 600 }}>Screen 3 (VIP Velvet)</span>
-                  <span style={{ fontWeight: 700 }}>KES 517,930</span>
+                  <span style={{ fontWeight: 600, color: "#CCCCCC" }}>Screen 3 (VIP Velvet)</span>
+                  <span style={{ fontWeight: 700, color: "#D4FF00" }}>KES 517,930</span>
                 </div>
               </div>
             </div>

@@ -28,7 +28,7 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
   it("renders the B2B Operator live screen and box office console mockups", () => {
     render(<App />);
     // Front Mockup (Operator Screen Console)
-    expect(screen.getByText("Rupa's Cinemas Eldoret")).toBeInTheDocument();
+    expect(screen.getByText("Premier Cinema Multiplex")).toBeInTheDocument();
     expect(screen.getByText("4 Screens Live")).toBeInTheDocument();
     expect(screen.getByText("Screen 1 (IMAX Laser)")).toBeInTheDocument();
     expect(screen.getByText("94.8% Capacity")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
     expect(screen.getByText("Showtime Scheduler")).toBeInTheDocument();
 
     // Back Mockup (Executive Box Office Console)
-    expect(screen.getByText(/Anga Diamond Plaza — Console/i)).toBeInTheDocument();
+    expect(screen.getByText(/Apex Cinema Multiplex — Console/i)).toBeInTheDocument();
     expect(screen.getByText("KES 486,200.00")).toBeInTheDocument();
     expect(screen.getByText("1,892 Seats Sold")).toBeInTheDocument();
     expect(screen.getByText("KES 437,580")).toBeInTheDocument();

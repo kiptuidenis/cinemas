@@ -613,7 +613,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <input
                     id="cinema_name"
                     {...registerSignup("cinema_name")}
-                    placeholder="e.g. Rupa's Cinemas Eldoret"
+                    placeholder="e.g. Premier Cinema Multiplex"
                     className="auth-input-field"
                     style={{
                       padding: "12px 14px 12px 38px",
