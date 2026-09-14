@@ -71,11 +71,24 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Border Radius */
+  /* Landing Page Neo-Fintech / SaaS Aesthetics */
+  --color-neon-lime: #d6ff38;
+  --color-neon-lime-hover: #c4f028;
+  --color-neon-lime-dim: rgba(214, 255, 56, 0.15);
+  --color-obsidian: #111113;
+  --color-obsidian-card: #161619;
+  --color-surface-ghost: #f6f7f9;
+  --color-surface-ghost-hover: #eceef2;
+  --color-border-card: #e6e8ec;
+  --color-charcoal: #6e7178;
+
+  /* Border Radius Scale */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-3xl: 44px;
   --radius-full: 9999px;
 
   /* Shadows & Elevations */
@@ -84,6 +97,8 @@
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.8);
   --shadow-gold-glow: 0 0 24px rgba(229, 169, 59, 0.35);
   --shadow-crimson-glow: 0 0 24px rgba(229, 9, 20, 0.35);
+  --shadow-neon-glow: 0 0 28px rgba(214, 255, 56, 0.35);
+  --shadow-float-card: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
 
   /* Glassmorphism & Transitions */
   --backdrop-blur: blur(16px);
