@@ -28,7 +28,7 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
   it("renders the B2B Operator live screen and box office console mockups", () => {
     render(<App />);
     // Front Mockup (Operator Screen Console)
-    expect(screen.getByText("Rupa's Cinemas Eldoret")).toBeInTheDocument();
+    expect(screen.getByText("Premier Cinema Multiplex")).toBeInTheDocument();
     expect(screen.getByText("4 Screens Live")).toBeInTheDocument();
     expect(screen.getByText("Screen 1 (IMAX Laser)")).toBeInTheDocument();
     expect(screen.getByText("94.8% Capacity")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
     expect(screen.getByText("Showtime Scheduler")).toBeInTheDocument();
 
     // Back Mockup (Executive Box Office Console)
-    expect(screen.getByText(/Anga Diamond Plaza — Console/i)).toBeInTheDocument();
+    expect(screen.getByText(/Apex Cinema Multiplex — Console/i)).toBeInTheDocument();
     expect(screen.getByText("KES 486,200.00")).toBeInTheDocument();
     expect(screen.getByText("1,892 Seats Sold")).toBeInTheDocument();
     expect(screen.getByText("KES 437,580")).toBeInTheDocument();
@@ -81,13 +81,33 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the registration wizard modal when Onboard Your Cinema is clicked", () => {
+  it("opens the split-screen auth page in signup mode when Onboard Your Cinema is clicked", () => {
     render(<App />);
 
     const onboardBtns = screen.getAllByRole("button", { name: /Onboard Your Cinema/i });
     fireEvent.click(onboardBtns[0]);
 
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Onboard Your Cinema/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Create an account/i })).toBeInTheDocument();
+    expect(screen.getByText(/30-day free cinema trial/i)).toBeInTheDocument();
+    expect(document.querySelector("video")).toHaveAttribute("src", "/videos/signup-video.mp4");
+    expect(screen.getByRole("button", { name: /^Create account$/i })).toBeInTheDocument();
+    expect(screen.getByText(/Sign up with Google/i)).toBeInTheDocument();
+  });
+
+  it("opens the split-screen auth page in login mode and can navigate back to website", () => {
+    render(<App />);
+
+    const loginBtn = screen.getByRole("button", { name: /Operator Log In/i });
+    fireEvent.click(loginBtn);
+
+    expect(screen.getByRole("heading", { name: /Welcome back/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Sign in$/i })).toBeInTheDocument();
+    expect(screen.getByText(/Sign in with Google/i)).toBeInTheDocument();
+
+    const backBtn = screen.getByRole("button", { name: /Back to website/i });
+    fireEvent.click(backBtn);
+    expect(
+      screen.getByRole("heading", { name: /The Operating System for.*Modern Cinemas/i })
+    ).toBeInTheDocument();
   });
 });
