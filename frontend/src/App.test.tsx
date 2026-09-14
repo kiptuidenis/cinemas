@@ -89,7 +89,7 @@ describe("Africinemas B2B Cinema Operator Onboarding Platform", () => {
 
     expect(screen.getByRole("heading", { name: /Create an account/i })).toBeInTheDocument();
     expect(screen.getByText(/30-day free cinema trial/i)).toBeInTheDocument();
-    expect(screen.getByText(/Screen 1: Curved IMAX 4K/i)).toBeInTheDocument();
+    expect(document.querySelector("video")).toHaveAttribute("src", "/videos/signup-video.mp4");
     expect(screen.getByRole("button", { name: /^Create account$/i })).toBeInTheDocument();
     expect(screen.getByText(/Sign up with Google/i)).toBeInTheDocument();
   });

@@ -4,6 +4,24 @@ export const CinemaRow3DAnimation: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // Autoplay guarantee for mobile devices (iOS Safari & Android Chrome)
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      try {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined && typeof playPromise?.catch === "function") {
+          playPromise.catch(() => {
+            // Autoplay policy or low-power mode handling
+          });
+        }
+      } catch {
+        // Fallback for non-standard test environments
+      }
+    }
+  }, []);
+
   // Background tab & battery optimization: pause video when tab is hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -11,9 +29,16 @@ export const CinemaRow3DAnimation: React.FC = () => {
       if (document.hidden) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play().catch(() => {
-          // Autoplay policy fallback
-        });
+        try {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined && typeof playPromise?.catch === "function") {
+            playPromise.catch(() => {
+              // Autoplay policy fallback
+            });
+          }
+        } catch {
+          // Fallback
+        }
       }
     };
 
@@ -21,16 +46,23 @@ export const CinemaRow3DAnimation: React.FC = () => {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  // Check for prefers-reduced-motion
+  // Check for prefers-reduced-motion safely
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mediaQuery.matches && videoRef.current) {
-      videoRef.current.pause();
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      try {
+        const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        if (mediaQuery && mediaQuery.matches && videoRef.current) {
+          videoRef.current.pause();
+        }
+      } catch {
+        // matchMedia unsupported or throwing
+      }
     }
   }, []);
 
   return (
     <div
+      className="cinema-video-container"
       style={{
         width: "100%",
         height: "100%",

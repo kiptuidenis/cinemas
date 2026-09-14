@@ -123,58 +123,64 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       return;
     }
 
-    const handler = setTimeout(async () => {
+    const timer = setTimeout(async () => {
       setIsCheckingSlug(true);
       try {
-        const result = await checkSubdomainAvailability(currentSlug);
-        setSlugAvailable(result.is_available);
+        const res = await checkSubdomainAvailability(currentSlug);
+        setSlugAvailable(res.is_available);
         setSlugMessage(
-          result.is_available
-            ? `${result.subdomain}.africinemas.com is available!`
-            : `${result.subdomain} is already reserved.`
+          res.is_available
+            ? `${res.subdomain}.africinemas.com is available!`
+            : `${res.subdomain}.africinemas.com is already registered`
         );
       } catch {
         setSlugAvailable(null);
-        setSlugMessage(null);
+        setSlugMessage("Could not verify subdomain at this moment");
       } finally {
         setIsCheckingSlug(false);
       }
     }, 450);
 
-    return () => clearTimeout(handler);
+    return () => clearTimeout(timer);
   }, [currentSlug]);
 
   const onSignup = async (data: SignupFormData) => {
+    if (slugAvailable === false) {
+      setSubmissionError("Please choose an available subdomain");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmissionError(null);
 
     try {
       const idempotencyKey = crypto.randomUUID();
-      const response = await registerCinema(
+      const status = await registerCinema(
         {
           cinema_name: data.cinema_name,
           slug: data.slug,
           city: "Nairobi",
-          address: "HQ / Main Branch",
+          address: "Central Business District",
           contact_phone: "+254700000000",
-          primary_color: "#E61C24",
-          secondary_color: "#E5A93B",
-          accent_color: "#D4FF00",
-          preset_name: "african-ruby",
-          first_name: "Operator",
+          first_name: data.cinema_name.split(" ")[0] || "Cinema",
           last_name: "Admin",
           email: data.email,
           phone_number: "+254700000000",
           password: data.password,
           password_confirm: data.password,
+          primary_color: "#D4FF00",
+          secondary_color: "#08090D",
+          accent_color: "#D4FF00",
         },
         idempotencyKey
       );
-
-      onSuccess(response);
+      onSuccess(status);
     } catch (err: unknown) {
       const errorMsg =
-        err instanceof Error ? err.message : "Failed to register cinema. Please try again.";
+        err instanceof Error && "response" in err
+          ? // @ts-expect-error Axios error typing
+            err.response?.data?.message || err.message
+          : "Registration failed. Please check your credentials and try again.";
       setSubmissionError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -185,10 +191,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setIsSubmitting(true);
     setSubmissionError(null);
 
-    // Simulate operator login check
+    // Mock operator login simulation
     setTimeout(() => {
       setIsSubmitting(false);
-      // Redirect or launch tenant console
       const slug = data.identifier.includes("@") ? data.identifier.split("@")[0] : data.identifier;
       onSuccess({
         cinema_slug: slug,
@@ -202,40 +207,294 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        display: "grid",
-        gridTemplateColumns: "1fr 1.08fr",
-        background: "#FFFFFF",
-        color: "#111111",
-        boxSizing: "border-box",
-        overflowX: "hidden",
-      }}
-    >
+    <div className="auth-page-root">
+      <style>{`
+        .auth-page-root {
+          min-height: 100vh;
+          width: 100%;
+          position: relative;
+          overflow-x: hidden;
+          box-sizing: border-box;
+          background: #08090D;
+        }
+
+        /* ====================================================================
+           MOBILE VIEW (< 992px): Video in background, Form overlay on top
+           ==================================================================== */
+        .auth-video-pane {
+          position: fixed;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1;
+          pointer-events: none;
+          overflow: hidden;
+        }
+        .auth-video-pane::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(8, 9, 13, 0.42) 0%,
+            rgba(8, 9, 13, 0.68) 45%,
+            rgba(8, 9, 13, 0.92) 100%
+          );
+          pointer-events: none;
+        }
+        .auth-video-pane .cinema-video-container {
+          border-radius: 0 !important;
+          min-height: 100% !important;
+          height: 100% !important;
+        }
+
+        .auth-form-pane {
+          position: relative;
+          z-index: 10;
+          min-height: 100vh;
+          width: 100%;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          padding: 20px 16px;
+          background: transparent;
+
+          /* Mobile Dark Mode CSS Variables */
+          --auth-brand-color: #FFFFFF;
+          --auth-title-color: #FFFFFF;
+          --auth-subtitle-color: #A0A0B2;
+          --auth-label-color: #E6E6EF;
+          --auth-input-bg: rgba(255, 255, 255, 0.08);
+          --auth-input-border: rgba(255, 255, 255, 0.16);
+          --auth-input-text: #FFFFFF;
+          --auth-input-placeholder: #7E7E90;
+          --auth-btn-bg: #D4FF00;
+          --auth-btn-text: #08090D;
+          --auth-sso-bg: rgba(255, 255, 255, 0.08);
+          --auth-sso-border: rgba(255, 255, 255, 0.16);
+          --auth-sso-text: #FFFFFF;
+          --auth-back-link-color: #CCCCCC;
+          --auth-back-link-bg: rgba(255, 255, 255, 0.08);
+          --auth-back-link-border: rgba(255, 255, 255, 0.14);
+          --auth-footer-color: #8E8E9F;
+          --auth-mode-link-color: #D4FF00;
+          --auth-icon-color: #A0A0B2;
+        }
+
+        .auth-card-container {
+          width: 100%;
+          max-width: 440px;
+          margin: 12px auto;
+          background: rgba(12, 13, 18, 0.78);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(212, 255, 0, 0.06);
+          border-radius: 20px;
+          padding: 28px 24px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .auth-heading {
+          font-family: var(--font-family-display);
+          font-size: 1.85rem;
+          font-weight: 800;
+          letter-spacing: -0.03em;
+          color: var(--auth-title-color);
+          margin: 0;
+          line-height: 1.18;
+        }
+
+        .auth-subtitle {
+          font-size: 0.9rem;
+          color: var(--auth-subtitle-color);
+          margin-top: 8px;
+          margin-bottom: 24px;
+          line-height: 1.45;
+        }
+
+        /* Prevent auto-zoom on iOS mobile browsers */
+        @media (max-width: 991px) {
+          .auth-input-field {
+            font-size: 16px !important;
+          }
+        }
+
+        /* ====================================================================
+           DESKTOP VIEW (>= 992px): Split Screen with White Form & Right Video
+           ==================================================================== */
+        @media (min-width: 992px) {
+          .auth-page-root {
+            display: grid;
+            grid-template-columns: 1fr 1.08fr;
+            background: #FFFFFF;
+          }
+
+          .auth-video-pane {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            z-index: auto;
+            pointer-events: auto;
+            order: 2;
+          }
+
+          .auth-video-pane::after {
+            display: none;
+          }
+
+          .auth-video-pane .cinema-video-container {
+            border-top-left-radius: 48px !important;
+            border-bottom-left-radius: 48px !important;
+          }
+
+          .auth-form-pane {
+            order: 1;
+            background: #FFFFFF;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            padding: 36px 54px;
+
+            /* Desktop Light Mode Minimalist SaaS Variables */
+            --auth-brand-color: #111111;
+            --auth-title-color: #111111;
+            --auth-subtitle-color: #666670;
+            --auth-label-color: #333338;
+            --auth-input-bg: #FFFFFF;
+            --auth-input-border: #E5E7EB;
+            --auth-input-text: #111111;
+            --auth-input-placeholder: #9CA3AF;
+            --auth-btn-bg: #111111;
+            --auth-btn-text: #FFFFFF;
+            --auth-sso-bg: #FFFFFF;
+            --auth-sso-border: #D1D5DB;
+            --auth-sso-text: #374151;
+            --auth-back-link-color: #666666;
+            --auth-back-link-bg: transparent;
+            --auth-back-link-border: transparent;
+            --auth-footer-color: #888892;
+            --auth-mode-link-color: #111111;
+            --auth-icon-color: #9CA3AF;
+          }
+
+          .auth-card-container {
+            max-width: 380px;
+            margin: 0 auto;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
+          }
+
+          .auth-heading {
+            font-size: 2.15rem;
+          }
+
+          .auth-subtitle {
+            font-size: 0.95rem;
+            margin-top: 10px;
+            margin-bottom: 28px;
+            line-height: 1.5;
+          }
+        }
+
+        .auth-input-field {
+          width: 100%;
+          min-height: 46px;
+          border-radius: 10px;
+          font-size: 0.92rem;
+          outline: none;
+          box-sizing: border-box;
+          background: var(--auth-input-bg);
+          color: var(--auth-input-text);
+          border: 1px solid var(--auth-input-border);
+          transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        }
+        .auth-input-field:focus {
+          border-color: #D4FF00 !important;
+          box-shadow: 0 0 0 3px rgba(212, 255, 0, 0.22) !important;
+        }
+        .auth-input-field::placeholder {
+          color: var(--auth-input-placeholder);
+        }
+
+        .auth-submit-btn {
+          width: 100%;
+          min-height: 48px;
+          background: var(--auth-btn-bg);
+          color: var(--auth-btn-text);
+          border: none;
+          border-radius: 10px;
+          padding: 13px 20px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          transition: transform 120ms ease, opacity 150ms ease, filter 150ms ease;
+        }
+        .auth-submit-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          filter: brightness(1.06);
+        }
+        .auth-submit-btn:active:not(:disabled) {
+          transform: translateY(1px);
+        }
+
+        .auth-google-btn {
+          width: 100%;
+          min-height: 46px;
+          background: var(--auth-sso-bg);
+          color: var(--auth-sso-text);
+          border: 1px solid var(--auth-sso-border);
+          border-radius: 10px;
+          padding: 11px 20px;
+          font-size: 0.92rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: background-color 150ms ease, border-color 150ms ease, transform 120ms ease;
+        }
+        .auth-google-btn:hover {
+          background: rgba(255, 255, 255, 0.14);
+          transform: translateY(-1px);
+        }
+        .auth-google-btn:active {
+          transform: translateY(1px);
+        }
+      `}</style>
+
       {/* ======================================================================
-          LEFT SECTION: Brand & Minimalist SaaS Authentication Form
+          VIDEO SHOWCASE PANE: Right pane on Desktop, Fixed Background on Mobile
           ====================================================================== */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          minHeight: "100vh",
-          overflowY: "auto",
-          padding: "36px 54px",
-          position: "relative",
-          boxSizing: "border-box",
-        }}
-      >
+      <div className="auth-video-pane">
+        <CinemaRow3DAnimation />
+      </div>
+
+      {/* ======================================================================
+          FORM PANE: Left pane on Desktop, Glass/Dark Scrim Overlay on Mobile
+          ====================================================================== */}
+      <div className="auth-form-pane">
         {/* Top Header: Brand Logo & Back Link */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: 32,
+            marginBottom: 24,
           }}
         >
           {/* Logo with signature lime dot */}
@@ -248,7 +507,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 fontFamily: "var(--font-family-display)",
                 fontWeight: 800,
                 fontSize: "1.35rem",
-                color: "#111111",
+                color: "var(--auth-brand-color)",
                 letterSpacing: "-0.03em",
                 display: "inline-flex",
                 alignItems: "center",
@@ -278,18 +537,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             type="button"
             onClick={onBackToHome}
             style={{
-              background: "none",
-              border: "none",
+              background: "var(--auth-back-link-bg)",
+              border: "1px solid var(--auth-back-link-border)",
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
               fontSize: "0.85rem",
               fontWeight: 600,
-              color: "#666666",
+              color: "var(--auth-back-link-color)",
               cursor: "pointer",
-              padding: "6px 10px",
+              padding: "7px 12px",
               borderRadius: "8px",
-              transition: "color 150ms ease",
+              transition: "all 150ms ease",
             }}
           >
             <ArrowLeft size={16} /> Back to website
@@ -297,38 +556,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </div>
 
         {/* Center Container: Vertically Centered Modern Auth Card */}
-        <div
-          style={{
-            maxWidth: 380,
-            width: "100%",
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        <div className="auth-card-container">
           {/* Headline & Subtitle */}
-          <h1
-            style={{
-              fontSize: "2.15rem",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "#111111",
-              margin: 0,
-              lineHeight: 1.15,
-            }}
-          >
+          <h1 className="auth-heading">
             {mode === "signup" ? "Create an account" : "Welcome back"}
           </h1>
 
-          <p
-            style={{
-              fontSize: "0.95rem",
-              color: "#666670",
-              marginTop: 10,
-              marginBottom: 28,
-              lineHeight: 1.5,
-            }}
-          >
+          <p className="auth-subtitle">
             {mode === "signup"
               ? "Start your 30-day free cinema trial. No credit card required."
               : "Enter your operator credentials to access your cinema console."}
@@ -369,7 +603,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     display: "block",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#333338",
+                    color: "var(--auth-label-color)",
                     marginBottom: 6,
                   }}
                 >
@@ -380,21 +614,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="cinema_name"
                     {...registerSignup("cinema_name")}
                     placeholder="e.g. Rupa's Cinemas Eldoret"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 14px 12px 38px",
-                      borderRadius: "10px",
-                      border: signupErrors.cinema_name ? "1px solid #EF4444" : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
-                      transition: "border-color 150ms ease",
+                      borderColor: signupErrors.cinema_name ? "#EF4444" : undefined,
                     }}
                   />
                   <Building2
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                 </div>
@@ -420,7 +648,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     display: "block",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#333338",
+                    color: "var(--auth-label-color)",
                     marginBottom: 6,
                   }}
                 >
@@ -431,24 +659,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="slug"
                     {...registerSignup("slug")}
                     placeholder="yourcinema"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 120px 12px 38px",
-                      borderRadius: "10px",
-                      border: signupErrors.slug
-                        ? "1px solid #EF4444"
+                      borderColor: signupErrors.slug
+                        ? "#EF4444"
                         : slugAvailable === true
-                          ? "1px solid #10B981"
-                          : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
+                          ? "#10B981"
+                          : undefined,
                     }}
                   />
                   <Globe
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                   <span
@@ -458,7 +681,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       top: 13,
                       fontSize: "0.82rem",
                       fontWeight: 600,
-                      color: "#888888",
+                      color: "var(--auth-subtitle-color)",
                       display: "flex",
                       alignItems: "center",
                       gap: 4,
@@ -497,7 +720,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     display: "block",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#333338",
+                    color: "var(--auth-label-color)",
                     marginBottom: 6,
                   }}
                 >
@@ -509,20 +732,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     type="email"
                     {...registerSignup("email")}
                     placeholder="operator@cinema.com"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 14px 12px 38px",
-                      borderRadius: "10px",
-                      border: signupErrors.email ? "1px solid #EF4444" : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
+                      borderColor: signupErrors.email ? "#EF4444" : undefined,
                     }}
                   />
                   <Mail
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                 </div>
@@ -548,7 +766,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     display: "block",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#333338",
+                    color: "var(--auth-label-color)",
                     marginBottom: 6,
                   }}
                 >
@@ -560,20 +778,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     type={showPassword ? "text" : "password"}
                     {...registerSignup("password")}
                     placeholder="Minimum 8 characters"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 42px 12px 38px",
-                      borderRadius: "10px",
-                      border: signupErrors.password ? "1px solid #EF4444" : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
+                      borderColor: signupErrors.password ? "#EF4444" : undefined,
                     }}
                   />
                   <Lock
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                   <button
@@ -586,7 +799,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      color: "#9CA3AF",
+                      color: "var(--auth-icon-color)",
                       padding: 0,
                     }}
                   >
@@ -614,7 +827,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         height: 3,
                         flex: 1,
                         borderRadius: 2,
-                        background: currentPassword.length >= 8 ? "#D4FF00" : "#E5E7EB",
+                        background:
+                          currentPassword.length >= 8 ? "#D4FF00" : "rgba(255,255,255,0.2)",
                       }}
                     />
                     <div
@@ -622,7 +836,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         height: 3,
                         flex: 1,
                         borderRadius: 2,
-                        background: /[A-Z]/.test(currentPassword) ? "#D4FF00" : "#E5E7EB",
+                        background: /[A-Z]/.test(currentPassword)
+                          ? "#D4FF00"
+                          : "rgba(255,255,255,0.2)",
                       }}
                     />
                     <div
@@ -630,7 +846,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         height: 3,
                         flex: 1,
                         borderRadius: 2,
-                        background: /[0-9]/.test(currentPassword) ? "#05C46B" : "#E5E7EB",
+                        background: /[0-9]/.test(currentPassword)
+                          ? "#05C46B"
+                          : "rgba(255,255,255,0.2)",
                       }}
                     />
                   </div>
@@ -641,22 +859,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                style={{
-                  background: "#111111",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: "10px",
-                  padding: "13px 20px",
-                  fontSize: "0.95rem",
-                  fontWeight: 700,
-                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  marginTop: 6,
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.12)",
-                }}
+                className="auth-submit-btn"
+                style={{ marginTop: 6 }}
               >
                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                 <span>Create account</span>
@@ -678,7 +882,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     display: "block",
                     fontSize: "0.85rem",
                     fontWeight: 600,
-                    color: "#333338",
+                    color: "var(--auth-label-color)",
                     marginBottom: 6,
                   }}
                 >
@@ -689,20 +893,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     id="identifier"
                     {...registerSignin("identifier")}
                     placeholder="operator@cinema.com or slug"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 14px 12px 38px",
-                      borderRadius: "10px",
-                      border: signinErrors.identifier ? "1px solid #EF4444" : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
+                      borderColor: signinErrors.identifier ? "#EF4444" : undefined,
                     }}
                   />
                   <Mail
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                 </div>
@@ -735,7 +934,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     style={{
                       fontSize: "0.85rem",
                       fontWeight: 600,
-                      color: "#333338",
+                      color: "var(--auth-label-color)",
                     }}
                   >
                     Password
@@ -746,7 +945,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     style={{
                       fontSize: "0.78rem",
                       fontWeight: 600,
-                      color: "#666670",
+                      color: "var(--auth-subtitle-color)",
                       textDecoration: "none",
                     }}
                   >
@@ -759,20 +958,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     type={showPassword ? "text" : "password"}
                     {...registerSignin("password")}
                     placeholder="Enter your password"
+                    className="auth-input-field"
                     style={{
-                      width: "100%",
                       padding: "12px 42px 12px 38px",
-                      borderRadius: "10px",
-                      border: signinErrors.password ? "1px solid #EF4444" : "1px solid #E5E7EB",
-                      fontSize: "0.92rem",
-                      color: "#111111",
-                      outline: "none",
-                      boxSizing: "border-box",
+                      borderColor: signinErrors.password ? "#EF4444" : undefined,
                     }}
                   />
                   <Lock
                     size={16}
-                    color="#9CA3AF"
+                    color="var(--auth-icon-color)"
                     style={{ position: "absolute", left: 12, top: 14 }}
                   />
                   <button
@@ -785,7 +979,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      color: "#9CA3AF",
+                      color: "var(--auth-icon-color)",
                       padding: 0,
                     }}
                   >
@@ -813,7 +1007,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   alignItems: "center",
                   gap: 8,
                   fontSize: "0.82rem",
-                  color: "#555555",
+                  color: "var(--auth-subtitle-color)",
                   cursor: "pointer",
                   userSelect: "none",
                 }}
@@ -822,7 +1016,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ accentColor: "#111111", cursor: "pointer" }}
+                  style={{ accentColor: "#D4FF00", cursor: "pointer" }}
                 />
                 <span>Remember for 30 days</span>
               </label>
@@ -831,22 +1025,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                style={{
-                  background: "#111111",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: "10px",
-                  padding: "13px 20px",
-                  fontSize: "0.95rem",
-                  fontWeight: 700,
-                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  marginTop: 4,
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.12)",
-                }}
+                className="auth-submit-btn"
+                style={{ marginTop: 4 }}
               >
                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                 <span>Sign in</span>
@@ -854,30 +1034,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </form>
           )}
 
-          {/* Social SSO: Sign up / Sign in with Google (Matches reference image) */}
+          {/* Social SSO: Sign up / Sign in with Google */}
           <div style={{ marginTop: 14 }}>
             <button
               type="button"
               onClick={() => {
-                // Mock Google OAuth redirect
                 window.alert("Google OAuth: Redirecting to accounts.google.com");
               }}
-              style={{
-                width: "100%",
-                background: "#FFFFFF",
-                color: "#374151",
-                border: "1px solid #D1D5DB",
-                borderRadius: "10px",
-                padding: "11px 20px",
-                fontSize: "0.92rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                transition: "background-color 150ms ease",
-              }}
+              className="auth-google-btn"
             >
               {/* Google multi-color SVG icon */}
               <svg width="18" height="18" viewBox="0 0 24 24">
@@ -908,7 +1072,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               textAlign: "center",
               marginTop: 24,
               fontSize: "0.85rem",
-              color: "#666670",
+              color: "var(--auth-subtitle-color)",
             }}
           >
             {mode === "signup" ? (
@@ -925,7 +1089,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     border: "none",
                     padding: 0,
                     fontWeight: 700,
-                    color: "#111111",
+                    color: "var(--auth-mode-link-color)",
                     textDecoration: "underline",
                     cursor: "pointer",
                   }}
@@ -947,7 +1111,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     border: "none",
                     padding: 0,
                     fontWeight: 700,
-                    color: "#111111",
+                    color: "var(--auth-mode-link-color)",
                     textDecoration: "underline",
                     cursor: "pointer",
                   }}
@@ -966,7 +1130,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             alignItems: "center",
             justifyContent: "space-between",
             fontSize: "0.78rem",
-            color: "#888892",
+            color: "var(--auth-footer-color)",
             marginTop: 36,
           }}
         >
@@ -977,7 +1141,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              color: "#666670",
+              color: "var(--auth-footer-color)",
               textDecoration: "none",
               fontWeight: 500,
             }}
@@ -986,13 +1150,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <span>help@africinemas.com</span>
           </a>
         </div>
-      </div>
-
-      {/* ======================================================================
-          RIGHT SECTION: Sculpted 3D Cinema Row Booking & Confirming Animation
-          ====================================================================== */}
-      <div style={{ width: "100%", height: "100%", minHeight: "100vh" }}>
-        <CinemaRow3DAnimation />
       </div>
     </div>
   );
