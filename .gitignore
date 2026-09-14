@@ -79,3 +79,7 @@ desktop.ini
 
 #skills
 .agents/
+
+# Chat Transcripts & State Backups
+chats/
+../chats/

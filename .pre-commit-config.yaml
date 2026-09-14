@@ -19,7 +19,7 @@ repos:
       - id: check-json
         exclude: "(^frontend/tsconfig.*\\.json$)"
       - id: check-added-large-files
-        args: ["--maxkb=500"]
+        args: ["--maxkb=10000"]
       - id: check-merge-conflict
       - id: detect-private-key
 

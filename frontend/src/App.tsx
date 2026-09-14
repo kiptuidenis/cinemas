@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRight,
   ArrowDown,
@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Ticket,
 } from "lucide-react";
+import { AuthPage } from "./features/auth/AuthPage";
 import { RegistrationWizard } from "./features/onboarding/RegistrationWizard";
 import { ProvisioningStatusModal } from "./features/onboarding/ProvisioningStatusModal";
 import { ProvisioningStatusResponse } from "./types/onboarding";
@@ -28,10 +29,28 @@ const CONTAINER_STYLE: React.CSSProperties = {
 };
 
 export const App: React.FC = () => {
+  const [currentView, setCurrentView] = useState<"landing" | "auth">("landing");
+  const [authInitialMode, setAuthInitialMode] = useState<"signup" | "signin">("signup");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [provisioningSlug, setProvisioningSlug] = useState("westgate");
   const [initialStatus, setInitialStatus] = useState<ProvisioningStatusResponse | null>(null);
+
+  useEffect(() => {
+    const path = window.location.pathname.toLowerCase();
+    if (path === "/login" || path === "/signin") {
+      setAuthInitialMode("signin");
+      setCurrentView("auth");
+    } else if (path === "/signup" || path === "/register" || path === "/onboard") {
+      setAuthInitialMode("signup");
+      setCurrentView("auth");
+    }
+  }, []);
+
+  const openAuth = (mode: "signup" | "signin") => {
+    setAuthInitialMode(mode);
+    setCurrentView("auth");
+  };
 
   const handleRegistrationSuccess = (response: ProvisioningStatusResponse) => {
     setIsWizardOpen(false);
@@ -39,6 +58,24 @@ export const App: React.FC = () => {
     setInitialStatus(response);
     setIsStatusModalOpen(true);
   };
+
+  if (currentView === "auth") {
+    return (
+      <>
+        <AuthPage
+          initialMode={authInitialMode}
+          onBackToHome={() => setCurrentView("landing")}
+          onSuccess={handleRegistrationSuccess}
+        />
+        <ProvisioningStatusModal
+          isOpen={isStatusModalOpen}
+          onClose={() => setIsStatusModalOpen(false)}
+          cinemaSlug={provisioningSlug}
+          initialStatus={initialStatus}
+        />
+      </>
+    );
+  }
 
   return (
     <div
@@ -135,7 +172,7 @@ export const App: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
             <button
               type="button"
-              onClick={() => setIsWizardOpen(true)}
+              onClick={() => openAuth("signin")}
               style={{
                 background: "none",
                 border: "none",
@@ -150,7 +187,7 @@ export const App: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setIsWizardOpen(true)}
+              onClick={() => openAuth("signup")}
               style={{
                 background: "#111111",
                 color: "#FFFFFF",
@@ -249,7 +286,7 @@ export const App: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "#111111",
                   color: "#FFFFFF",
@@ -627,7 +664,7 @@ export const App: React.FC = () => {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <button
                   type="button"
-                  onClick={() => setIsWizardOpen(true)}
+                  onClick={() => openAuth("signup")}
                   style={{
                     background: "#F2F3F5",
                     color: "#111111",
@@ -643,7 +680,7 @@ export const App: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsWizardOpen(true)}
+                  onClick={() => openAuth("signup")}
                   style={{
                     background: "#D4FF00",
                     color: "#111111",
@@ -722,7 +759,7 @@ export const App: React.FC = () => {
             <div style={{ marginTop: 32 }}>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "none",
                   border: "none",
@@ -808,7 +845,7 @@ export const App: React.FC = () => {
             <div style={{ marginTop: 32 }}>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "none",
                   border: "none",
@@ -944,7 +981,7 @@ export const App: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "transparent",
                   border: "1px solid #D5D7DC",
@@ -994,7 +1031,7 @@ export const App: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "transparent",
                   border: "1px solid #D5D7DC",
@@ -1044,7 +1081,7 @@ export const App: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "transparent",
                   border: "1px solid #D5D7DC",
@@ -1094,7 +1131,7 @@ export const App: React.FC = () => {
               </p>
               <button
                 type="button"
-                onClick={() => setIsWizardOpen(true)}
+                onClick={() => openAuth("signup")}
                 style={{
                   background: "transparent",
                   border: "1px solid #D5D7DC",
@@ -1308,7 +1345,7 @@ export const App: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setIsWizardOpen(true)}
+              onClick={() => openAuth("signup")}
               style={{
                 background: "#FFFFFF",
                 color: "#111111",
@@ -1676,7 +1713,7 @@ export const App: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setIsWizardOpen(true)}
+          onClick={() => openAuth("signup")}
           style={{
             background: "#111111",
             color: "#FFFFFF",
@@ -1787,7 +1824,7 @@ export const App: React.FC = () => {
                 href="#hero"
                 onClick={(e) => {
                   e.preventDefault();
-                  setIsWizardOpen(true);
+                  openAuth("signup");
                 }}
                 style={{ color: "#A0A0A0" }}
               >
