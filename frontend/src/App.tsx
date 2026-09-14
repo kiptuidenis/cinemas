@@ -14,19 +14,13 @@ import {
   Clock,
   ShieldCheck,
   Ticket,
+  Menu,
+  X,
 } from "lucide-react";
 import { AuthPage } from "./features/auth/AuthPage";
 import { RegistrationWizard } from "./features/onboarding/RegistrationWizard";
 import { ProvisioningStatusModal } from "./features/onboarding/ProvisioningStatusModal";
 import { ProvisioningStatusResponse } from "./types/onboarding";
-
-// Industry standard desktop layout container (Material Design 3 / Apple HIG / Tailwind 7xl):
-// 58px balanced edge gutters (calc(100% - 116px)) with a 1360px maximum container width.
-const CONTAINER_STYLE: React.CSSProperties = {
-  maxWidth: 1360,
-  width: "calc(100% - 116px)",
-  margin: "0 auto",
-};
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<"landing" | "auth">("landing");
@@ -35,6 +29,7 @@ export const App: React.FC = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [provisioningSlug, setProvisioningSlug] = useState("westgate");
   const [initialStatus, setInitialStatus] = useState<ProvisioningStatusResponse | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const path = window.location.pathname.toLowerCase();
@@ -88,6 +83,495 @@ export const App: React.FC = () => {
         overflowX: "hidden",
       }}
     >
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+
+        .landing-container {
+          max-width: 1360px;
+          width: calc(100% - 116px);
+          margin: 0 auto;
+          box-sizing: border-box;
+        }
+        @media (max-width: 1024px) {
+          .landing-container {
+            width: calc(100% - 48px);
+          }
+        }
+        @media (max-width: 640px) {
+          .landing-container {
+            width: calc(100% - 32px);
+          }
+        }
+
+        .landing-section {
+          margin: 0 auto 100px auto;
+          padding: 0;
+        }
+        @media (max-width: 768px) {
+          .landing-section {
+            margin: 0 auto 60px auto;
+          }
+        }
+
+        .landing-header-inner {
+          padding: 16px 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .landing-desktop-nav {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #555555;
+        }
+        .landing-desktop-nav a {
+          text-decoration: none;
+          color: #555555;
+          transition: color 150ms ease;
+        }
+        .landing-desktop-nav a:hover {
+          color: #111111;
+        }
+
+        .landing-login-btn {
+          background: none;
+          border: none;
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #555555;
+          cursor: pointer;
+          padding: 6px 12px;
+          border-radius: 8px;
+          transition: color 150ms ease, background-color 150ms ease;
+        }
+        .landing-login-btn:hover {
+          color: #111111;
+          background: #F2F3F5;
+        }
+
+        .landing-desktop-cta {
+          background: #111111;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 999px;
+          padding: 12px 24px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+          transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+        .landing-desktop-cta:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+        }
+
+        .landing-mobile-menu-btn {
+          display: none;
+          background: #F2F3F5;
+          border: 1px solid #E0E2E6;
+          border-radius: 10px;
+          padding: 8px;
+          cursor: pointer;
+          color: #111111;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 150ms ease;
+        }
+        .landing-mobile-menu-btn:hover {
+          background: #E5E7EB;
+        }
+
+        @media (max-width: 991px) {
+          .landing-desktop-nav {
+            display: none;
+          }
+          .landing-desktop-cta {
+            display: none;
+          }
+          .landing-mobile-menu-btn {
+            display: flex;
+          }
+        }
+
+        .landing-mobile-drawer {
+          display: flex;
+          flex-direction: column;
+          background: #FFFFFF;
+          border-top: 1px solid #EBEBEB;
+          border-bottom: 1px solid #EBEBEB;
+          padding: 18px 24px;
+          gap: 14px;
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+          animation: drawerSlide 180ms ease-out;
+        }
+        @keyframes drawerSlide {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .landing-mobile-link {
+          text-decoration: none;
+          color: #222222;
+          font-size: 1rem;
+          font-weight: 600;
+          padding: 8px 0;
+          border-bottom: 1px solid #F2F3F5;
+        }
+        .landing-mobile-cta {
+          background: #111111;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 999px;
+          padding: 14px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          margin-top: 6px;
+        }
+
+        /* Hero */
+        .landing-hero-section {
+          margin: 28px auto 90px auto;
+          padding: 0;
+          position: relative;
+        }
+        @media (max-width: 768px) {
+          .landing-hero-section {
+            margin: 16px auto 60px auto;
+          }
+        }
+        .landing-hero-grid {
+          display: grid;
+          grid-template-columns: 1.06fr 0.94fr;
+          gap: 28px;
+          align-items: stretch;
+        }
+        .landing-hero-lime-card {
+          background: #D4FF00;
+          border-radius: 40px;
+          padding: 54px 48px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          position: relative;
+          overflow: hidden;
+          min-height: 560px;
+          box-sizing: border-box;
+        }
+        .landing-hero-mockup-wrapper {
+          position: relative;
+          min-height: 560px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+        }
+        .landing-mockup-back {
+          position: absolute;
+          right: 0;
+          top: 15px;
+          width: 345px;
+          background: #161619;
+          border-radius: 32px;
+          padding: 24px 20px;
+          color: #FFFFFF;
+          box-shadow: 0 22px 46px rgba(0, 0, 0, 0.16);
+          transform: rotate(4deg) scale(0.98);
+          z-index: 1;
+          transition: transform 250ms ease;
+        }
+        .landing-mockup-back:hover {
+          transform: rotate(2deg) scale(1);
+        }
+        .landing-mockup-front {
+          position: absolute;
+          left: 8px;
+          bottom: 12px;
+          width: 360px;
+          background: #FFFFFF;
+          border-radius: 32px;
+          padding: 24px 22px;
+          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.09);
+          border: 1px solid #EBEBEB;
+          z-index: 2;
+          transition: transform 250ms ease, box-shadow 250ms ease;
+        }
+        .landing-mockup-front:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 28px 56px rgba(0, 0, 0, 0.12);
+        }
+        @media (max-width: 991px) {
+          .landing-hero-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+          .landing-hero-lime-card {
+            min-height: auto;
+            padding: 40px 28px;
+            border-radius: 28px;
+          }
+          .landing-hero-mockup-wrapper {
+            min-height: 520px;
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+          }
+        }
+        @media (max-width: 480px) {
+          .landing-hero-lime-card {
+            padding: 32px 20px;
+            border-radius: 24px;
+          }
+          .landing-hero-mockup-wrapper {
+            min-height: 480px;
+            max-width: 100%;
+          }
+          .landing-mockup-back {
+            width: 92%;
+            right: 0;
+            top: 5px;
+            padding: 20px 16px;
+            transform: rotate(2deg) scale(0.96);
+          }
+          .landing-mockup-front {
+            width: 94%;
+            left: 3%;
+            bottom: 5px;
+            padding: 20px 16px;
+          }
+        }
+
+        /* Section Headings */
+        .landing-section-heading {
+          font-family: var(--font-family-display);
+          font-size: clamp(2rem, 3.8vw, 2.8rem);
+          font-weight: 800;
+          color: #111111;
+          letter-spacing: -0.03em;
+          margin-bottom: 20px;
+          line-height: 1.15;
+        }
+        .landing-section-subtext {
+          color: #555555;
+          font-size: 1.05rem;
+          line-height: 1.6;
+          max-width: 520px;
+        }
+
+        /* Features 1 */
+        .landing-features-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+        .landing-feature-card {
+          background: #FFFFFF;
+          border-radius: 28px;
+          padding: 40px 36px;
+          border: 1px solid #EBEBEB;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-height: 280px;
+          position: relative;
+          overflow: hidden;
+          transition: transform 220ms ease, box-shadow 220ms ease;
+        }
+        .landing-feature-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
+        }
+        @media (max-width: 860px) {
+          .landing-features-grid {
+            grid-template-columns: 1fr;
+          }
+          .landing-feature-card {
+            padding: 32px 24px;
+            border-radius: 22px;
+          }
+        }
+
+        /* Advantages */
+        .landing-advantages-grid {
+          display: grid;
+          grid-template-columns: 0.75fr 1.25fr;
+          gap: 48px;
+        }
+        .landing-advantages-cards {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+        .landing-advantage-card {
+          background: #FFFFFF;
+          border-radius: 20px;
+          padding: 28px;
+          border: 1px solid #EBEBEB;
+          transition: transform 200ms ease, box-shadow 200ms ease;
+        }
+        .landing-advantage-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+        }
+        @media (max-width: 991px) {
+          .landing-advantages-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+        }
+        @media (max-width: 640px) {
+          .landing-advantages-cards {
+            grid-template-columns: 1fr;
+          }
+          .landing-advantage-card {
+            padding: 24px 20px;
+          }
+        }
+
+        /* Banner */
+        .landing-banner-grid {
+          background: #111111;
+          border-radius: 40px;
+          padding: 54px 54px 40px 54px;
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 32px;
+          align-items: center;
+          position: relative;
+          min-height: 320px;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .landing-banner-mockup-col {
+          position: relative;
+          display: flex;
+          justify-content: flex-end;
+        }
+        .landing-banner-mockup {
+          width: 300px;
+          background: #FFFFFF;
+          border-radius: 28px;
+          padding: 24px 20px;
+          color: #111111;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+          transform: translateY(40px);
+          border: 1px solid #EBEBEB;
+          transition: transform 250ms ease;
+        }
+        @media (max-width: 991px) {
+          .landing-banner-grid {
+            grid-template-columns: 1fr;
+            padding: 36px 24px;
+            border-radius: 28px;
+          }
+          .landing-banner-mockup-col {
+            justifyContent: center;
+            margin-top: 16px;
+          }
+          .landing-banner-mockup {
+            transform: translateY(0);
+            width: 100%;
+            max-width: 320px;
+          }
+        }
+
+        /* Rails */
+        .landing-rails-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 48px;
+          align-items: center;
+          margin-bottom: 90px;
+        }
+        .landing-rails-row-reverse {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 48px;
+          align-items: center;
+        }
+        .landing-rails-blob-wrapper {
+          position: relative;
+          min-height: 320px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: 32px;
+        }
+        @media (max-width: 991px) {
+          .landing-rails-row {
+            grid-template-columns: 1fr;
+            gap: 32px;
+            margin-bottom: 60px;
+          }
+          .landing-rails-row-reverse {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+        }
+
+        /* Footer */
+        .landing-footer {
+          background: #111111;
+          color: #A0A0A0;
+          padding: 70px 32px 40px 32px;
+          border-top-left-radius: 36px;
+          border-top-right-radius: 36px;
+          box-sizing: border-box;
+        }
+        .landing-footer-grid {
+          display: grid;
+          grid-template-columns: 1.1fr 1fr 1fr 1.3fr;
+          gap: 48px;
+          margin-bottom: 50px;
+        }
+        .landing-subfooter {
+          border-top: 1px solid #222226;
+          padding-top: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.8rem;
+          color: #666666;
+        }
+        @media (max-width: 991px) {
+          .landing-footer {
+            padding: 50px 20px 32px 20px;
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+          }
+          .landing-footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 36px;
+          }
+          .landing-subfooter {
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+          }
+        }
+        @media (max-width: 600px) {
+          .landing-footer-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+        }
+      `}</style>
+
       {/* ======================================================================
           A. NAVIGATION BAR (Sticky Header)
           ====================================================================== */}
@@ -101,17 +585,12 @@ export const App: React.FC = () => {
           boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
         }}
       >
-        <div
-          style={{
-            ...CONTAINER_STYLE,
-            padding: "16px 0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="landing-container landing-header-inner">
           {/* Logo (Left): "Africinemas" with tiny lime green dot */}
-          <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+          <div
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+          >
             <span
               style={{
                 fontFamily: "var(--font-family-display)",
@@ -144,106 +623,90 @@ export const App: React.FC = () => {
           </div>
 
           {/* Links (Center) - B2B Cinema Operator Solutions */}
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 32,
-              fontSize: "0.95rem",
-              fontWeight: 500,
-              color: "#555555",
-            }}
-          >
+          <nav className="landing-desktop-nav">
             <a href="#features" style={{ color: "#111111", fontWeight: 600 }}>
               Features
             </a>
-            <a href="#auditoriums" style={{ color: "#555555" }}>
-              Auditoriums
-            </a>
-            <a href="#escrow" style={{ color: "#555555" }}>
-              Escrow Rails
-            </a>
-            <a href="#docs" style={{ color: "#555555" }}>
-              Developer Docs
-            </a>
+            <a href="#auditoriums">Auditoriums</a>
+            <a href="#escrow">Escrow Rails</a>
+            <a href="#docs">Developer Docs</a>
           </nav>
 
           {/* Actions (Right) */}
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <button
-              type="button"
-              onClick={() => openAuth("signin")}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                color: "#555555",
-                cursor: "pointer",
-                padding: "4px 8px",
-              }}
-            >
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <button type="button" onClick={() => openAuth("signin")} className="landing-login-btn">
               Operator Log In
             </button>
             <button
               type="button"
               onClick={() => openAuth("signup")}
-              style={{
-                background: "#111111",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "999px",
-                padding: "12px 24px",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)",
-                transition: "transform 150ms ease",
+              className="landing-desktop-cta"
+            >
+              <Film size={18} color="#D4FF00" /> Onboard Your Cinema
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="landing-mobile-menu-btn"
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobileMenuOpen && (
+          <div className="landing-mobile-drawer">
+            <a
+              href="#features"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-link"
+            >
+              Features
+            </a>
+            <a
+              href="#auditoriums"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-link"
+            >
+              Auditoriums
+            </a>
+            <a
+              href="#escrow"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-link"
+            >
+              Escrow Rails
+            </a>
+            <a
+              href="#docs"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-link"
+            >
+              Developer Docs
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                openAuth("signup");
               }}
+              className="landing-mobile-cta"
             >
               <Film size={18} color="#D4FF00" /> Onboard Your Cinema
             </button>
           </div>
-        </div>
+        )}
       </header>
 
       {/* ======================================================================
           B. HERO SECTION
           ====================================================================== */}
-      <section
-        id="hero"
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "28px auto 90px auto",
-          padding: 0,
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.06fr 0.94fr",
-            gap: 28,
-            alignItems: "stretch",
-          }}
-        >
+      <section id="hero" className="landing-container landing-hero-section">
+        <div className="landing-hero-grid">
           {/* Left Column: Massive Vibrant Lime-Green Organic Container */}
-          <div
-            style={{
-              background: "#D4FF00",
-              borderRadius: "40px",
-              padding: "54px 48px",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              position: "relative",
-              overflow: "hidden",
-              minHeight: 560,
-            }}
-          >
+          <div className="landing-hero-lime-card">
             <div>
               <h1
                 style={{
@@ -350,31 +813,9 @@ export const App: React.FC = () => {
           </div>
 
           {/* Right Column: Layered Multi-Depth Platform Mockups */}
-          <div
-            style={{
-              position: "relative",
-              minHeight: 560,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div className="landing-hero-mockup-wrapper">
             {/* Back Mockup (Offset Dark UI Card - Executive Box Office Console) */}
-            <div
-              style={{
-                position: "absolute",
-                right: 0,
-                top: 15,
-                width: 345,
-                background: "#161619",
-                borderRadius: "32px",
-                padding: "24px 20px",
-                color: "#FFFFFF",
-                boxShadow: "0 22px 46px rgba(0, 0, 0, 0.16)",
-                transform: "rotate(4deg) scale(0.98)",
-                zIndex: 1,
-              }}
-            >
+            <div className="landing-mockup-back">
               <div
                 style={{
                   display: "flex",
@@ -482,20 +923,7 @@ export const App: React.FC = () => {
             </div>
 
             {/* Front Mockup (Pure White UI Card - Operator Live Screen & Box Office Console) */}
-            <div
-              style={{
-                position: "absolute",
-                left: 8,
-                bottom: 12,
-                width: 360,
-                background: "#FFFFFF",
-                borderRadius: "32px",
-                padding: "24px 22px",
-                boxShadow: "0 24px 50px rgba(0, 0, 0, 0.09)",
-                border: "1px solid #EBEBEB",
-                zIndex: 2,
-              }}
-            >
+            <div className="landing-mockup-front">
               {/* Header: Cinema Name + Active Status Badge */}
               <div
                 style={{
@@ -704,46 +1132,16 @@ export const App: React.FC = () => {
       {/* ======================================================================
           C. FEATURES SECTION 1: "Engineered for High-Yield Theater Operations"
           ====================================================================== */}
-      <section
-        id="features"
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 100px auto",
-          padding: 0,
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "clamp(2rem, 3.8vw, 2.8rem)",
-            fontWeight: 800,
-            color: "#111111",
-            letterSpacing: "-0.03em",
-            marginBottom: 36,
-            maxWidth: 560,
-          }}
-        >
+      <section id="features" className="landing-container landing-section">
+        <h2 className="landing-section-heading" style={{ maxWidth: 560, marginBottom: 36 }}>
           Engineered for High-Yield
           <br />
           Theater Operations
         </h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div className="landing-features-grid">
           {/* Card 1: Dynamic Seating & Multi-Auditorium Engine */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              borderRadius: "28px",
-              padding: "40px 36px",
-              border: "1px solid #EBEBEB",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.02)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              minHeight: 280,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
+          <div className="landing-feature-card">
             <div>
               <h3
                 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#111111", marginBottom: 10 }}
@@ -815,21 +1213,7 @@ export const App: React.FC = () => {
           </div>
 
           {/* Card 2: Automated M-Pesa Escrow & Split Settlements */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              borderRadius: "28px",
-              padding: "40px 36px",
-              border: "1px solid #EBEBEB",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.02)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              minHeight: 280,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
+          <div className="landing-feature-card">
             <div>
               <h3
                 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#111111", marginBottom: 10 }}
@@ -908,55 +1292,25 @@ export const App: React.FC = () => {
       {/* ======================================================================
           D. ADVANTAGES SECTION (2-Column: 30% Left, 70% Right 2x2 Grid)
           ====================================================================== */}
-      <section
-        id="auditoriums"
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 100px auto",
-          padding: 0,
-        }}
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "0.75fr 1.25fr", gap: 48 }}>
+      <section id="auditoriums" className="landing-container landing-section">
+        <div className="landing-advantages-grid">
           {/* Left Column (30%) */}
           <div>
-            <h2
-              style={{
-                fontSize: "clamp(2.2rem, 3.5vw, 3rem)",
-                fontWeight: 800,
-                color: "#111111",
-                lineHeight: 1.1,
-                letterSpacing: "-0.03em",
-                marginBottom: 20,
-              }}
-            >
+            <h2 className="landing-section-heading">
               Platform
               <br />
               Advantages
             </h2>
-            <p
-              style={{
-                color: "#555555",
-                fontSize: "1.05rem",
-                lineHeight: 1.6,
-                maxWidth: 320,
-              }}
-            >
+            <p className="landing-section-subtext" style={{ maxWidth: 320 }}>
               Engineered in consultation with Kenyan cinema exhibitors to eliminate box office
               friction, queue bottlenecks, and revenue leakage.
             </p>
           </div>
 
           {/* Right Column (70% - 2x2 Grid) */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div className="landing-advantages-cards">
             {/* Item 1: 5-Minute Tenant Provisioning */}
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "20px",
-                padding: "28px",
-                border: "1px solid #EBEBEB",
-              }}
-            >
+            <div className="landing-advantage-card">
               <div
                 style={{
                   width: 40,
@@ -999,14 +1353,7 @@ export const App: React.FC = () => {
             </div>
 
             {/* Item 2: Zero Double-Booking Guarantee */}
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "20px",
-                padding: "28px",
-                border: "1px solid #EBEBEB",
-              }}
-            >
+            <div className="landing-advantage-card">
               <div
                 style={{
                   width: 40,
@@ -1049,14 +1396,7 @@ export const App: React.FC = () => {
             </div>
 
             {/* Item 3: Direct M-Pesa & Card Rails */}
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "20px",
-                padding: "28px",
-                border: "1px solid #EBEBEB",
-              }}
-            >
+            <div className="landing-advantage-card">
               <div
                 style={{
                   width: 40,
@@ -1099,14 +1439,7 @@ export const App: React.FC = () => {
             </div>
 
             {/* Item 4: Multiplex & Arthouse Scale */}
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "20px",
-                padding: "28px",
-                border: "1px solid #EBEBEB",
-              }}
-            >
+            <div className="landing-advantage-card">
               <div
                 style={{
                   width: 40,
@@ -1156,17 +1489,11 @@ export const App: React.FC = () => {
           ====================================================================== */}
       <section
         id="escrow"
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 100px auto",
-          padding: 0,
-          textAlign: "center",
-        }}
+        className="landing-container landing-section"
+        style={{ textAlign: "center" }}
       >
-        <h2 style={{ fontSize: "2.2rem", fontWeight: 800, color: "#111111", marginBottom: 10 }}>
-          Ecosystem Partners
-        </h2>
-        <p style={{ color: "#555555", fontSize: "1.05rem", marginBottom: 44 }}>
+        <h2 className="landing-section-heading">Ecosystem Partners</h2>
+        <p className="landing-section-subtext" style={{ margin: "0 auto 44px auto" }}>
           Trusted by Cinema Operators, Integrated with Global Cinematic Exhibition Standards
         </p>
 
@@ -1293,31 +1620,13 @@ export const App: React.FC = () => {
       {/* ======================================================================
           F. APP PROMO BANNER (Solid Black Card with 3D Overlapping Monitor)
           ====================================================================== */}
-      <section
-        id="docs"
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 120px auto",
-          padding: 0,
-        }}
-      >
-        <div
-          style={{
-            background: "#111111",
-            borderRadius: "40px",
-            padding: "54px 54px 40px 54px",
-            display: "grid",
-            gridTemplateColumns: "1.1fr 0.9fr",
-            gap: 32,
-            alignItems: "center",
-            position: "relative",
-            minHeight: 320,
-          }}
-        >
+      <section id="docs" className="landing-container landing-section">
+        <div className="landing-banner-grid">
           {/* Left Side: Copy + White Pill Button */}
           <div>
             <h2
               style={{
+                fontFamily: "var(--font-family-display)",
                 fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
                 fontWeight: 800,
                 color: "#FFFFFF",
@@ -1366,25 +1675,8 @@ export const App: React.FC = () => {
           </div>
 
           {/* Right Side: Mockup Card Overflowing the Bottom Edge */}
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              justifyContent: "flex-end",
-            }}
-          >
-            <div
-              style={{
-                width: 300,
-                background: "#FFFFFF",
-                borderRadius: "28px",
-                padding: "24px 20px",
-                color: "#111111",
-                boxShadow: "0 24px 60px rgba(0, 0, 0, 0.4)",
-                transform: "translateY(40px)",
-                border: "1px solid #EBEBEB",
-              }}
-            >
+          <div className="landing-banner-mockup-col">
+            <div className="landing-banner-mockup">
               <div style={{ fontSize: "0.75rem", color: "#888888", textTransform: "uppercase" }}>
                 Multi-Screen Daily Gross
               </div>
@@ -1447,23 +1739,9 @@ export const App: React.FC = () => {
       {/* ======================================================================
           G. FEATURES SECTION 2: Real-Time Rails (Alternating Staggered Rows)
           ====================================================================== */}
-      <section
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 100px auto",
-          padding: 0,
-        }}
-      >
+      <section className="landing-container landing-section">
         {/* Row 1: Frictionless M-Pesa Checkouts & 0.5s QR Admission */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 48,
-            alignItems: "center",
-            marginBottom: 90,
-          }}
-        >
+        <div className="landing-rails-row">
           {/* Left Visual: Black UI card + Lime accent blob */}
           <div
             style={{ position: "relative", minHeight: 280, display: "flex", alignItems: "center" }}
@@ -1518,10 +1796,10 @@ export const App: React.FC = () => {
 
           {/* Right Text */}
           <div>
-            <h2 style={{ fontSize: "2.4rem", fontWeight: 800, color: "#111111", marginBottom: 16 }}>
+            <h2 className="landing-section-heading" style={{ marginBottom: 16 }}>
               Frictionless M-Pesa Checkouts & 0.5s QR Admission
             </h2>
-            <p style={{ color: "#555555", fontSize: "1.05rem", lineHeight: 1.6, maxWidth: 440 }}>
+            <p className="landing-section-subtext" style={{ maxWidth: 440 }}>
               No more payment drop-offs or box office queues. Moviegoers receive an instant M-Pesa
               STK push prompt directly on their phone, issuing cryptographically signed QR tickets
               that scan in under 0.5 seconds at your theater doors.
@@ -1530,20 +1808,13 @@ export const App: React.FC = () => {
         </div>
 
         {/* Row 2: Distributed Concurrency & High-Traffic Seat Protection */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 48,
-            alignItems: "center",
-          }}
-        >
+        <div className="landing-rails-row-reverse">
           {/* Left Text */}
           <div>
-            <h2 style={{ fontSize: "2.4rem", fontWeight: 800, color: "#111111", marginBottom: 16 }}>
+            <h2 className="landing-section-heading" style={{ marginBottom: 16 }}>
               Distributed Concurrency & High-Traffic Seat Protection
             </h2>
-            <p style={{ color: "#555555", fontSize: "1.05rem", lineHeight: 1.6, maxWidth: 440 }}>
+            <p className="landing-section-subtext" style={{ maxWidth: 440 }}>
               High-traffic premier releases cause heavy box office stampedes. Our distributed Redis
               locking engine enforces a strict 7-minute seat hold TTL, ensuring zero double-bookings
               even during blockbuster midnight releases.
@@ -1551,15 +1822,7 @@ export const App: React.FC = () => {
           </div>
 
           {/* Right Visual: Seat status items on Top of Massive Lime Blob with Squiggly Lines */}
-          <div
-            style={{
-              position: "relative",
-              minHeight: 320,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div className="landing-rails-blob-wrapper">
             {/* Massive Lime Blob extending from right */}
             <div
               style={{
@@ -1678,34 +1941,12 @@ export const App: React.FC = () => {
       {/* ======================================================================
           H. PRE-FOOTER CTA (Centered)
           ====================================================================== */}
-      <section
-        style={{
-          ...CONTAINER_STYLE,
-          margin: "0 auto 100px auto",
-          padding: 0,
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
-            fontWeight: 800,
-            color: "#111111",
-            letterSpacing: "-0.03em",
-            marginBottom: 16,
-          }}
-        >
-          Ready to Modernize Your Cinema's Box Office?
-        </h2>
+      <section className="landing-container landing-section" style={{ textAlign: "center" }}>
+        <h2 className="landing-section-heading">Ready to Modernize Your Cinema's Box Office?</h2>
 
         <p
-          style={{
-            color: "#555555",
-            fontSize: "1.05rem",
-            lineHeight: 1.6,
-            maxWidth: 540,
-            margin: "0 auto 28px auto",
-          }}
+          className="landing-section-subtext"
+          style={{ margin: "0 auto 28px auto", maxWidth: 540 }}
         >
           Join Kenya's leading cinema exhibitors. Launch your branded online booking engine,
           automated M-Pesa payouts, and multi-screen management in 5 minutes.
@@ -1736,24 +1977,8 @@ export const App: React.FC = () => {
       {/* ======================================================================
           I. FOOTER (Solid Black with 4 Columns & Lime Submit Button)
           ====================================================================== */}
-      <footer
-        style={{
-          background: "#111111",
-          color: "#A0A0A0",
-          padding: "70px 32px 40px 32px",
-          borderTopLeftRadius: "36px",
-          borderTopRightRadius: "36px",
-        }}
-      >
-        <div
-          style={{
-            ...CONTAINER_STYLE,
-            display: "grid",
-            gridTemplateColumns: "1.1fr 1fr 1fr 1.3fr",
-            gap: 48,
-            marginBottom: 50,
-          }}
-        >
+      <footer className="landing-footer">
+        <div className="landing-container landing-footer-grid">
           {/* Col 1: Logo */}
           <div>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
@@ -1895,18 +2120,7 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        <div
-          style={{
-            ...CONTAINER_STYLE,
-            borderTop: "1px solid #222226",
-            paddingTop: 24,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "0.8rem",
-            color: "#666666",
-          }}
-        >
+        <div className="landing-container landing-subfooter">
           <div>© {new Date().getFullYear()} Africinemas SaaS Platform. All rights reserved.</div>
           <div>Phase 1 Multi-Tenant Tenant Onboarding Engine Active</div>
         </div>
